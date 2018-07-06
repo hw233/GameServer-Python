@@ -1,0 +1,124 @@
+//打造相关
+package equipMake;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//装备信息
+message equipInfo{
+	required uint64 iPropsId=1;//装备id，服务端生成
+	optional uint32 iNo=2;//装备编号，配置表读取
+	optional int32 con=3;//体质
+	optional int32 mag=4;//魔力
+	optional int32 str=5;//力量
+	optional int32 res=6;//耐力
+	optional int32 spi=7;//精神
+	optional int32 dex=8;//敏捷
+	optional int32 phyDam=9;//物理伤害
+	optional int32 magDam=10;//法术伤害
+	optional int32 cure=11;//治疗强度
+	optional int32 hpMax=12;//生命上限
+	optional int32 mpMax=13;//真气上限
+	optional int32 spe=14;//速度
+	optional int32 phyDef=15;//物理防御
+	optional int32 magDef=16;//法术防御
+	optional int32 fiveAttr=17;//五行属性 0没有1无2金3木4水5火6土
+	optional int32 spEffect=18;// 特效ID
+	optional int32 spSkill=19;// 特技ID
+	optional int32 sealHit=20;//封印命中
+	optional int32 reSealHit=21;//抵抗封印
+	optional int32 isRare=22;//是否珍品
+}
+
+//材料信息
+message materialInfo{
+	required uint32 iNo=1;//材料编号
+	optional uint32 iAmount=2;//材料数量
+	optional uint32 iCashType=3;//货币类型 0银币1元宝
+	optional uint32 iCash=4;//货币数量
+}
+
+//打造信息
+message makeInfo{
+	required int32 equipNo=1; //装备配置表编号
+	optional int32 makeType=2; //打造方式 0:普通打造1:快捷打造
+	repeated materialInfo materials=3; //材料信息
+}
+
+//宝石信息
+message gemInfo{
+	repeated materialInfo gems=1;//宝石售价列表
+}
+
+//镶嵌信息
+message addGemInfo{
+	required int64 iEquipId=1; //装备的id,镶到哪件装备的意思
+	required int32 iHoleNo=2; //宝石孔编号.1或2
+	required int32 iGemNo=3; //要镶上去的宝石类型(就是宝石编号)
+}
+
+//取出宝石的信息
+message removeGemInfo{
+	required int64 iEquipId=1; //装备的id
+	required int32 iHoleNo=2; //宝石孔编号.1或2
+}
+
+//获取装备重铸属性
+message recastAttrInfo{
+	required uint64 propsId=1;//物品ID
+}
+
+//装备重铸/替换
+message recastInfo{
+	required uint64 propsId=1;//物品ID
+	optional int32 shortcut=2;//快捷重镇 0：否，1：是
+}
+
+//装备重铸结果
+message recastResult{
+	required int32 coolTime=1;//冷却时间
+	optional equipInfo recastAttr=2;//装备重铸属性
+	optional int32 iType=3;//重铸：1 替换：2
+}
+
+//装备修理
+message repairedInfo{
+	required int32 iType=1;//类型 1:全部修理 2:身上修理 3:单件修理
+	optional int64 iEquipId=2; //装备的id
+}
+
+//装备修理列表
+message repairedList{
+	repeated int64 iEquipId=1; //装备的id
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcEquipMakeInfoReq(equipMake.makeInfo)returns(public.fake); //装备打造信息请求(只传equipNo即可)
+	rpc rpcEquipMakeReq(equipMake.makeInfo)returns(public.fake); // 打造请求
+	rpc rpcGemInfoReq(public.fake)returns(public.fake); //宝石售价信息请求
+	rpc rpcAddGem(equipMake.addGemInfo)returns(public.fake); // 镶嵌宝石
+	rpc rpcRemoveGem(equipMake.removeGemInfo)returns(public.fake); // 从装备取出宝石	
+
+	rpc rpcEquipRepaired(equipMake.repairedInfo)returns(public.fake); //装备修理
+
+
+	//装备重铸
+	rpc rpcEquipRecastAttr(equipMake.recastAttrInfo)returns(public.fake);//获取装备重铸属性
+	rpc rpcEquipRecast(equipMake.recastInfo)returns(public.fake);//装备重铸
+	rpc rpcEquipRecastReplace(equipMake.recastInfo)returns(public.fake);//装备属性替换
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcEquipMakeInfoResponse(equipMake.makeInfo)returns(public.fake); //装备打造信息回应
+	rpc rpcEquipMakeResponse(equipMake.equipInfo)returns(public.fake); //打造结果
+	rpc rpcGemInfoResponse(equipMake.gemInfo)returns(public.fake); //宝石售价信息回应
+
+	rpc rpcEquipRepairedSuccess(equipMake.repairedList)returns(public.fake); //装备成功修理
+
+	//装备重铸
+	rpc rpcEquipRecastResponse(equipMake.recastResult)returns(public.fake); //装备重铸属性
+}

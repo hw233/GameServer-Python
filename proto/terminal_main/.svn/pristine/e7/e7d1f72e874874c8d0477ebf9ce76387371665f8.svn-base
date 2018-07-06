@@ -1,0 +1,44 @@
+package hyperlink;//超链接相关的
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+import "props.proto";
+import "pet.proto";
+import "task.proto";
+import "team.proto";
+import "lineup.proto";
+
+//人物信息
+message roleInfo{
+	required int64 roleId=1; //人物id
+	optional int32 shape=2; //头像
+	optional bytes name=3; //名称
+	optional int32 level=4; //等级
+	optional int32 teamId=6; //队伍id
+	optional bytes guildName=7; //仙盟名
+	optional int32 school=8; //门派
+}
+
+//超链接信息
+message hyperlinkInfo{
+	required int64 iRoleId=1;//人物id
+	optional int32 iType=2;//类型 1:物品 2:宠物 3:任务 4:队伍 5:人物 6:帮派,7:阵眼,8:答题 9:珍品阁摆摊,10:成就,11:摊位
+	optional int32 iTargetNo=3; //目标编号
+	optional bytes sSerialized=4;//字节流数据msg序列化
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcHyperlink(hyperlink.hyperlinkInfo)returns(public.fake);//查看超链接
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcPropsHyperlink(props.itemMsg)returns(public.fake);//物品超链接
+	rpc rpcPetHyperlink(pet.petData)returns(public.fake);//宠物超链接
+	rpc rpcTaskHyperlink(task.taskMsg)returns(public.fake);//任务超链接
+	rpc rpcTeamHyperlink(team.teamInfo)returns(public.fake);//队伍超链接
+	rpc rpcRoleHyperlink(hyperlink.roleInfo)returns(public.fake);//人物超链接
+	rpc rpcEyeHyperlink(lineup.eyeMsg)returns(public.fake);//阵眼超链接
+}

@@ -1,0 +1,14 @@
+option py_generic_services=true;//是否生成python服务
+import "universal/public.proto";
+import "universal/base.proto";
+
+//路由服务 --> 后端服务
+service route2backEnd{
+	rpc rpcOtherBackEndLink2route(base.int32_)returns(public.fake);//有其他backEnd连接到路由
+}
+
+//后端服务--> 路由服务
+service backEnd2route{
+	rpc rpcBackEndReport(base.int32_)returns(base.bool_);//功能服务向路由服务报到
+	
+}

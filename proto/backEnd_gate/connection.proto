@@ -1,0 +1,11 @@
+option py_generic_services=true;//是否生成python服务
+
+package connection;
+
+message connectionInfo{
+	required int32 iGateServiceId=1;//网关服务id
+	required int32 iConnId=2;//连接id
+	required bytes sIP=3;//ip地址
+	required int32 iPort=4;//端口
+	optional uint32 iTimeout=5[default=1000];//超时
+}

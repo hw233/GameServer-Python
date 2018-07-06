@@ -1,0 +1,9 @@
+package backEnd;
+
+enum backEndType {
+	UNKNOWN_SERVICE=0x0;//
+	MAIN_SERVICE=0x1;//
+	SCENE_SERVICE=0x2;//
+	FIGHT_SERVICE=0x4;//
+	CHAT_SERVICE=0x8;//
+}

@@ -1,0 +1,125 @@
+package friend;	//新手引导
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+
+//好友信息
+message frinedInfo{
+	required int64 iRoleId=1;//玩家Id
+	optional int32 iLevel=2;//等级
+	optional int32 iShape=3;//造型
+	optional int32 iSchool=4;//职业
+	optional bytes sName=5;//名字
+	optional bytes sSignature=6;//个性签名
+	optional bool bOnline=7;//是否在线
+	optional bool bSameService=8;//是否同服
+	optional bytes sServiceName=9;//服务器名字
+	optional int32 iFriendPoint=10;//友好度
+	optional bytes sMarkName=11;//备注名字
+	optional int32 iTeamNo=12;//分组编号
+	optional int32 iOfflineTime=13;//离线时长(秒)
+	optional bool bInTeam=14;//是否组队中
+	optional bytes sGuildName=15;//帮派名字
+}
+
+//自定义分组编号从100开始。
+//固定分组编号为 1:最近联系人 2:全部好友 3:跨服好友 4:最近队友 5:黑名单 6:敌人
+
+//自定义分组信息
+message teamInfo{
+	optional int32 iTeamNo=1;//分组编号
+	optional bytes sName=2;//分组名字
+	repeated int64 roleIdList=3;//该组的玩家id
+}
+
+//聊天信息
+message chatInfo{
+	required int64 iRoleId=1;//好友id(目标) , 51：系统 52：精灵
+	optional int32 iSendTime=2;//发送时间戳
+	optional bytes sContent=3; //内容
+	optional int32 iAudio=4;//是否语音 0:不是 1：是
+	optional int32 iAudioLen=5;//语音长度(秒为单位)
+	optional int32 iAudioIdx=6;//语音序号
+	optional int64 iSenderId=7;//发送者id 51：系统 52：精灵
+}
+
+//好友列表
+message frinedList{
+	repeated frinedInfo friendList=1;//好友列表 (所有好友,跨服好友和自定分组的好友按这个列表自行分配)
+	repeated frinedInfo recLinkManList=2;//最近联系人
+	repeated frinedInfo recTeamMateList=3;//最近队友
+	repeated frinedInfo blackList=4;//黑名单
+	repeated teamInfo teamList=5;//自定义分组
+	repeated chatInfo chatList=6;//聊天信息列表(角色离线时未收到的信息)
+}
+
+//推荐信息
+message recommendInfo{
+	required int32 iType=1;//类型 1:推荐好友 2:附近好友 3:相同标签
+	repeated frinedInfo resultList=2;//结果列表
+	optional bool bRefresh=3;//是否刷新 打开需要刷新，滑动不需要
+}
+
+//搜索信息
+message searchInfo{
+	required int32 iType=1;//类型 1:本服 2:跨服
+	optional bytes sContent=2;//搜索内容
+	repeated frinedInfo resultList=3;//结果列表
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcFriendAddReq(friend.frinedInfo)returns(public.fake);//添加好友，上传 玩家Id
+	rpc rpcFriendModReq(friend.frinedInfo)returns(public.fake);//修改好友 上传 玩家ID
+	rpc rpcFriendDelReq(friend.frinedInfo)returns(public.fake);//删除好友，上传 玩家Id
+	rpc rpcFriendInfoReq(friend.frinedInfo)returns(public.fake);//好友具体信息请求，上传 玩家Id
+
+	rpc rpcFriendAddBlackReq(friend.frinedInfo)returns(public.fake);//添加黑名单，上传 玩家Id
+	rpc rpcFriendDelBlackReq(friend.frinedInfo)returns(public.fake);//删除黑名单，上传 玩家Id
+
+	rpc rpcFriendAddTeamReq(friend.teamInfo)returns(public.fake);//添加自定义分组, 上传 分组名字和该组的玩家id
+	rpc rpcFriendSetTeamSet(friend.teamInfo)returns(public.fake);//编辑分组
+	rpc rpcFriendDelTeamReq(friend.teamInfo)returns(public.fake);//删除分组 上传 分组编号
+
+	rpc rpcFriendChatSend(friend.chatInfo)returns(public.fake);//发送聊天信息
+
+	rpc rpcFriendRecommendReq(friend.recommendInfo)returns(public.fake);//推荐请求, 上传类型
+
+	rpc rpcFriendSearch(friend.searchInfo)returns(public.fake);//搜索好友
+
+	rpc rpcFriendAddRecLinkManReq(friend.frinedInfo)returns(public.fake);//最近联系人增加请求，上传玩家id
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcFriendListSend(friend.frinedList)returns(public.fake);//好友列表,登录时下发
+
+	rpc rpcFriendAdd(friend.frinedInfo)returns(public.fake);//好友增加
+	rpc rpcFriendMod(friend.frinedInfo)returns(public.fake);//好友修改
+	rpc rpcFriendDel(friend.frinedInfo)returns(public.fake);//好友删除 ，上传 玩家Id
+	rpc rpcFriendInfoSend(friend.frinedInfo)returns(public.fake);//好友具体信息发送
+
+	rpc rpcFriendAddRecLinkMan(friend.frinedInfo)returns(public.fake);//最近联系人增加，超过上限客户端把最后一个顶掉
+	rpc rpcFriendAddRecTeamMate(friend.frinedInfo)returns(public.fake);//最近队友增加，超过上限客户端把最后一个顶掉
+
+	rpc rpcFriendAddBlack(friend.frinedInfo)returns(public.fake);//黑名单增加
+	rpc rpcFriendModBlack(friend.frinedInfo)returns(public.fake);//黑名单修改
+	rpc rpcFriendDelBlack(friend.frinedInfo)returns(public.fake);//黑名单删除， 上传 玩家Id
+
+	rpc rpcFriendAddTeam(friend.teamInfo)returns(public.fake);//自定义分组增加
+	rpc rpcFriendModTeam(friend.teamInfo)returns(public.fake);//自定义分组修改
+	rpc rpcFriendDelTeam(friend.teamInfo)returns(public.fake);//自定义分组删除
+
+	rpc rpcFriendChatGet(friend.chatInfo)returns(public.fake);//收到聊天信息
+
+	//上下线都会发送一次好友的简要信息，用于更新数据
+	rpc rpcFriendOnline(friend.frinedInfo)returns(public.fake);//上线
+	rpc rpcFriendOffline(friend.frinedInfo)returns(public.fake);//下线
+
+	rpc rpcFriendRecommendSend(friend.recommendInfo)returns(public.fake);//发送推荐列表
+	rpc rpcFriendSearchResule(friend.searchInfo)returns(public.fake);//搜索好友结果
+
+}

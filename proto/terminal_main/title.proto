@@ -1,0 +1,43 @@
+//称号
+package title;
+option py_generic_services=true;
+import "universal/public.proto";
+import "common.proto";
+
+//称谓信息
+message titleInfo{
+	required int32 iNo=1;//称号编号
+	optional bytes sName=2;//称号名字
+	optional int32 iExpire=3; //过期时间(UTC秒数)
+	optional bool bIsNew=4; //新获得的红点
+}
+
+//称谓列表
+message titleList{
+	optional int32 iWearTitle=1; //当前穿着的称号
+	repeated titleInfo titleInfo=2; //称号列表
+}
+
+//物品信息
+message uiInfo{
+	required int32 iUINo=1;//UI编号1背包
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcActiveTitle(title.titleInfo)returns(public.fake);//激活称号(穿上)，只发称号编号
+	rpc rpcAcquireTitle(title.titleInfo)returns(public.fake);//获取称谓，只发称号编号
+	// rpc rpcInActiveTitle(common.int32_)returns(common.bool_);//停止使用称号(脱掉)
+	// rpc rpcFightTitleList(public.fake)returns(public.fake);//请求战力称号面板
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcAddTitle(title.titleInfo)returns(public.fake);//增加称号到称号容器
+	rpc rpcRemoveTitle(title.titleInfo)returns(public.fake);//删除称号，只发称号编号
+	rpc rpcTitleList(title.titleList)returns(public.fake);//称谓列表
+	rpc rpcTitleUpdate(title.titleList)returns(public.fake);//更新当前穿着称号
+	rpc rpcTitleOpenUI(title.uiInfo)returns(public.fake);//打开使用物品界面
+	// rpc rpcTitleTips(public.fake)returns(public.fake);//称号提示,获得了xxx称号
+	// rpc rpcFightTitleList(title.fightTitleList)returns(public.fake);//下发列表
+}

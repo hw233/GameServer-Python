@@ -1,0 +1,27 @@
+package guide;	//新手引导
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+
+message guideRecord{
+	required int32 iGuideNo=1;//编号
+	required int32 iIsEnd=2;//是否结束
+	required int32 iIsNew=3;//是否新手
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcGuideAddRecord(common.int32_)returns(public.fake);//引导做完记录
+	rpc rpcGuideEndRecord(common.int32_)returns(public.fake);//是否结束
+	rpc rpcGuideNewRecord(common.int32_)returns(public.fake);//是否新手
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcGuideRecord(guide.guideRecord)returns(public.fake);//引导记录
+	rpc rpcGuideChangeGuideNo(common.int32_)returns(public.fake);//改变引号编号
+}

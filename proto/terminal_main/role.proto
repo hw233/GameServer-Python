@@ -1,0 +1,255 @@
+package role;
+option py_generic_services=true;
+import "universal/public.proto";
+import "common.proto";
+
+
+
+//角色属性(角色登录时用这个,角色属性变化时也用这个)
+message roleAttr{
+	required int64 roleId=1;//实体id/角色id
+	optional int32 zoneId=2;	//服务器ID
+	optional int32 zoneNo=3;//区号,服务器编号
+	optional bytes zoneName=4;//服务器名字(区名字)
+	optional bytes name=5;//角色名称
+	
+	optional int32 level=6;//等级
+	optional uint64 exp=7;//经验
+	optional uint64 expNext=8;//升级到下一级所需经验
+
+	optional uint64 hp=11;//血量
+	optional uint64 hpMax=12;//血量上限
+	optional uint64 mp=13;//魔法量
+	optional uint64 mpMax=14;//魔法量上限
+
+	//一级属性,基础属性
+	optional int32 con=15;//体质
+	optional int32 mag=16;//魔力
+	optional int32 str=17;//力量
+	optional int32 res=18;//耐力
+	optional int32 spi=19;//精神
+	optional int32 dex=20;//敏捷
+	
+	//二级属性
+	optional int32 phyDam=21;//物理伤害
+	optional int32 magDam=22;//法术伤害
+	optional int32 phyDef=23;//物理防御
+	optional int32 magDef=24;//法术防御
+
+	optional int32 spe=25;//速度
+	optional int32 cure=26;//治疗强度
+
+	optional int32 sp=27;//愤怒
+	optional int32 spMax=28;//愤怒上限
+
+	optional int32 huoli=29;//活力
+	optional int32 huoliMax=30;//活力上限
+
+	optional int32 phyCrit=31;//物理暴击
+	optional int32 magCrit=32;//法术暴击
+	optional int32 phyReCrit=33;//物理抗暴
+	optional int32 magReCrit=34;//法术抗暴
+	optional int32 fightPower=35;//战力
+	optional int32 sealHit=36;//封印命中
+	optional int32 reSealHit=37;//抵抗封印
+
+	optional int32 point=40;//潜力点
+	optional int32 school=41;//职业
+	optional int32 shape=42;//造型
+
+	optional int32 reserveHp=43;//储备生命
+	optional int32 reserveMp=44;//储备真气
+	repeated int32 shapeParts=45; // 造型部位, [头发,身躯,衣服,武器,影子,帽子]
+	repeated int32 colors=46; // 染色, [头发,身躯,衣服,武器,影子,帽子]
+	
+	optional bool autoFight=50; //是否自动战斗, false.手动  true.自动
+	optional int32 defaultPerform=51; //默认法术
+
+	optional int32 demonPoint=59; //降魔积分
+	optional int32 schoolPoint=60; //门贡
+	optional int32 guildPoint=61; //帮贡
+	optional int32 holidayPoint =62; //节日积分
+	optional int32 masterPoint=63; //良师值
+	optional int32 pkPoint=64; //武勋值
+	optional int32 helpPoint=65; //侠义值
+
+	optional int64 cash=66;//银币/游戏币
+	optional int64 tradeCash=68;//元宝
+	optional int64 moneyCash=69;//龙纹玉
+	optional int32 addon=70; //附加状态, 0x1.队伍的队长, 0x2.战斗中, 0x4.运镖
+	optional int32 capacity=71;//背包容量
+	optional int32 pointScheme=72;//当前方案
+	optional int32 gender=73;//性别 1男 2女
+	optional bytes title=74;//称号
+	optional int32 titleEffect=75;//称号特效
+	optional int32 guildId=76;//帮派ID
+
+	optional int32 d=77; //面向
+	optional bytes guildName=78;//帮派名称
+	optional int32 rideShape=79; //坐骑造型
+	repeated int32 rideShapePart=80; //造型部位
+	repeated int32 rideColors=81; //坐骑染色
+	optional int32 flowerPoint=82; //献花积分
+	optional int32 tougheningExp=83; //历练经验
+}
+
+//属性计算器
+message attrCalculator{
+	message calc{
+		optional bytes sExpression=1;//表过式,一个lua函数
+		optional int32 iAddend=2;//加数
+		optional float fFactor=3;//系数
+		
+	}
+	optional calc hpMaxCalc=1;//
+	optional calc mpMaxCalc=2;//
+	optional calc phyDamCalc=3;//
+	optional calc magDamCalc=4;//
+	optional calc phyDefCalc=5;//
+	optional calc magDefCalc=6;//
+	optional calc speCalc=7;//
+
+	optional int32 iCurScheme=8;//当前正在使用的方案
+
+	optional int32 conBase=9;//  基础体质
+	optional int32 magBase=10;// 基础魔力
+	optional int32 strBase=11;// 基础力量
+	optional int32 resBase=12;// 基础耐力
+	optional int32 spiBase=13;// 基础精神
+	optional int32 dexBase=14;// 基础敏捷
+
+}
+
+//加点方案
+message schemeBaseAttr{	
+	required int32 pointSchemeNo=1;//第几套方案
+
+	optional int32 con=2;//体质
+	optional int32 mag=3;//魔力
+	optional int32 str=4;//力量
+	optional int32 res=5;//耐力
+	optional int32 spi=6;//精神
+	optional int32 dex=7;//敏捷
+
+	optional int32 point=8;//潜力点
+}
+
+
+//加点属性
+message attrPointInfo{
+	optional int32 pointSchemeNo=1;//第几套方案
+	//系统属性和分配属性
+	//绿色
+	optional int32 con=11;//体质
+	optional int32 mag=12;//魔力
+	optional int32 str=13;//力量
+	optional int32 res=14;//耐力
+	optional int32 spi=15;//精神
+	optional int32 dex=16;//敏捷
+
+	//分配的：橙色
+	optional int32 conAllot=17;//分配的体质
+	optional int32 magAllot=18;//分配的魔力
+	optional int32 strAllot=19;//分配的力量
+	optional int32 resAllot=20;//分配的耐力
+	optional int32 spiAllot=21;//分配的精神
+	optional int32 dexAllot=22;//分配的敏捷
+
+
+	//属性附加
+	optional int32 hpAppend=30;		//气血附加
+	optional int32 mpAppend=31;		//魔法附加
+	optional int32 phyDamAppend=32;	//物理伤害附加
+	optional int32 magAppend=33;		//法术伤害附加
+	optional int32 phyDefAppend=34;	//物理防御附加
+	optional int32 magDefAppend=35;	//法术防御附加
+	optional int32 speAppend=36;		//速度附加
+	optional int32 cureAppend=37;	//治疗强度附加	
+
+	//加点方案
+	//暂时不用
+	optional int32 conScheme=52;//体质
+	optional int32 magScheme=53;//魔力
+	optional int32 strScheme=54;//力量
+	optional int32 resScheme=55;//耐力
+	optional int32 spiScheme=56;//精神
+	optional int32 dexScheme=57;//敏捷
+	optional int32 pointScheme=58;//潜力点
+}
+
+//洗点
+message resetPoint{
+	required bytes attr=1;//重置属性
+}
+
+//改名
+message resetName{
+	required int64 roleId=1;//角色id
+	optional int64 propsId=2;//改名道具
+	optional int32 mode=3;//类别1请求改名2改名成功3改名弹框
+	optional bytes name=4;//角色名称
+}
+
+//安全锁
+message lockMsg {
+	optional int32 iLock=1;//锁状态(0未设置锁，1上锁，2未锁, 3时间行强解锁)
+	optional int32 iApplyTime=2;//申请时间(UTC秒数)
+	optional int32 iEndTime=3;//审核结束(UTC秒数)
+	optional bytes sPassword=4;//密码
+	optional bytes sOldPwd=5;//旧密码
+}
+
+//安全锁操作
+message lockOperate {
+	required int32 iOp=1;//操作类型(1设置，2修改，3上锁，4解锁，5时间强行解锁，6取消时间强行解锁)
+	optional lockMsg opArgs=2;//操作参数
+	optional bool bRes=3;//操作结果true成功;false失败
+}
+
+message roleInfoReq{
+	required int64 roleId=1;//角色id
+	optional int32 clientTag=2;//客户端确认窗口标记
+}
+
+message roleInfoRes{
+	required int64 roleId=1;//实体id/角色id
+	optional int32 clientTag=2;//客户端确认窗口id
+	optional int32 shape=3;//造型
+	optional bytes name=4;//角色名称
+	optional int32 level=5;//等级
+	optional int32 addon=6; //附加状态, 0x1.队伍的队长, 0x2.战斗中, 0x4.运镖
+	optional int32 teamId=7; //队伍id
+	optional int32 teamMemberNum=8; //队伍人数
+	optional int32 guildId=9; //仙盟id
+	optional bytes guildName=10; //仙盟名
+	optional bool online=11; //是否在线
+	optional int32 school=12; //门派id
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcReqCalculator(public.fake)returns(public.fake);//请求属性计算器,打开属性界面的时候客户端请求
+	rpc rpcSwitchScheme(common.int32_)returns(public.fake);//开启加点方案
+	rpc rpcResetPoint(role.resetPoint)returns(public.fake);//洗点
+	rpc rpcConfirmResetPoint(role.schemeBaseAttr)returns(public.fake);//确定加点 
+	rpc rpcSchemeInfo(common.int32_)returns(public.fake);//查看加点方案
+	rpc rpcReqAttrPoint(public.fake)returns(public.fake);//请求系统属性和分配属性
+	rpc rpcResetName(role.resetName)returns(public.fake);//改名
+	rpc rpcSecurityLockOperate(role.lockOperate)returns(public.fake);//安全锁相关操作
+	rpc rpcWork(public.fake)returns(public.fake);//打工
+	rpc rpcRoleInfoGet(role.roleInfoReq)returns(public.fake); //请求最新的玩家数据
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcRespAttrPointInfo(role.attrPointInfo)returns(public.fake);//下发加点信息
+	//rpc rpcRespCalculator(role.attrAppend)returns(public.fake);//下发属性计算器
+	//rpc rpcSchemeInfoResponse(role.schemeBaseAttr)returns(public.fake);//分配方案
+	//rpc rpcRespAttrPoint(role.attrPoint)returns(public.fake);//下发系统属性和分配属性
+	rpc rpcReNameNotify(role.resetName)returns(public.fake);//改名通知(根据字段mode处理弹框or关闭)
+	rpc rpcSecurityLockMsg(role.lockMsg)returns(public.fake);//安全锁信息
+	rpc rpcSecurityUnlock(public.fake)returns(public.fake);//弹出解除安全锁界面
+	rpc rpcSecurityLockOperateRes(role.lockOperate)returns(public.fake);//安全锁相关操作结果
+	rpc rpcRoleInfoSend(role.roleInfoRes)returns(public.fake); //下发最新的玩家面板数据
+}

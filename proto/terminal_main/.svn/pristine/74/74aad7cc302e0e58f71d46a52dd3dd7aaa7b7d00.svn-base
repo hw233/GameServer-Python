@@ -1,0 +1,75 @@
+package shop;//商店
+
+option py_generic_services=true;
+import "universal/public.proto";
+import "common.proto";
+
+
+//购买信息
+message buyInfo{
+	required int32 iPropsNo = 1;//商品编号
+	required int32 iAmount = 2;//数量
+}
+
+//打开信息
+message openInfo{
+	required int32 iShopType = 1;	//商店类型
+	optional int32 iTaskId = 2;		//任务编号
+	optional int32 iPropsNo = 3;	//商品编号
+	optional bool bShut = 4;		//是否关闭 ture:购买后关闭;false不关闭
+}
+
+//物品兑换信息
+message propsExInfo{
+	required int32 iPointID = 1;//积分编号
+	optional buyInfo buyInfo = 2;//兑换信息
+}
+
+//货币兑换信息
+message moneyExInfo{
+	required int32 iMoneyType = 1;//货币类型1银币2元宝3龙纹玉
+	optional int32 iSource = 2;//货币来源1银币2元宝3龙纹玉
+	optional int32 iAmount = 3;//兑换数量
+}
+
+//兑换信息
+message exchangeInfo{
+	required int32 iPointID = 1;//积分编号
+	repeated buyInfo buyInfo = 2;//兑换信息
+}
+
+//商城物品
+message mallProps{
+	required int32 iPropsNo = 1;//商品编号
+	optional int32 iAmount = 2;//数量
+	optional int32 iPrice = 3;//现价
+	optional int32 iOriginal = 4;//原价
+	optional int32 iIdx = 5;//商品序号
+	optional int32 iWeight = 6;//商品权重
+	optional int32 iTime = 7;//商品剩余时间(UTC秒数)
+}
+
+//商城信息
+message mallInfo{
+	required int32 iMallType = 1;//商城类别
+	repeated mallProps mallProps = 2;//商城物品信息
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcBuyGoods(shop.buyInfo)returns(public.fake);//购买商品
+	rpc rpcPropsExchange(shop.propsExInfo)returns(public.fake);//积分兑换
+	rpc rpcMoneyExchange(shop.moneyExInfo)returns(public.fake);//货币兑换
+	rpc rpcExchangeInfoReq(shop.exchangeInfo)returns(public.fake);//积分兑换信息请求(所需参数iPointID)
+	rpc rpcMallInfoReq(shop.mallInfo)returns(public.fake);//商城信息请求(所需参数iMallType)
+	rpc rpcMallBuy(shop.mallInfo)returns(public.fake);//购买商城物品
+}
+
+//下行(服务器主动发起)
+service main2terminal{
+	rpc rpcOpenShop(shop.openInfo)returns(public.fake);//打开商店界面(1武器铺，2药铺，3客栈)
+	rpc rpcExchangeInfoRespone(shop.exchangeInfo)returns(public.fake);//兑换信息回应
+	rpc rpcMallInfoRespone(shop.mallInfo)returns(public.fake);//商城信息回应
+	rpc rpcOpenPropsExchange(common.int32_)returns(public.fake);//打开积分兑换界面
+}

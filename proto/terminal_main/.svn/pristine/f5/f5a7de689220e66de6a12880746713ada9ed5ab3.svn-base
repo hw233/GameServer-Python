@@ -1,0 +1,90 @@
+package treasureShop;//珍宝阁
+
+option py_generic_services=true;
+import "universal/public.proto";
+import "common.proto";
+import "props.proto";
+import "lineup.proto";
+
+
+//商品信息
+message goodsInfo{
+	required int64 iStallId=1;//物品摆摊id
+	optional int64 iPrice=2;//出售单价
+	optional int32 iAttention=3;//关注人数
+	optional bool bAttention=4;//是否关注
+	optional int32 iGoodsId=5;//商品辨识编号
+	optional int32 iReport=6;//举报人数
+	optional bool bReport=7;//是否举报
+	optional props.packageItemMsg props=8;//物品信息
+	optional lineup.eyeMsg eye=9;//阵眼信息
+	optional int32 iType=10;//类型 1：购买，2：公示期 3:交易板
+	optional int32 iTime=11;//剩余时间(秒)
+	optional int64 iSellerId=12;//卖家id
+}
+
+
+//商品列表
+message goodsListInfo{
+	required int32 iGoodsId=1;//商品辨识编号,0为关注/举报
+	optional int32 iOrder=2;//顺序 1:价格小到大 2:价格大到小
+	optional int32 iPage=3;//单前页数
+	optional int32 iType=4;//类型 1：购买，2：公示期 3:交易板
+	optional int32 iPageMax=5;//最大页数
+	repeated goodsInfo goodsList=6;//商品信息
+}
+
+//出售信息
+message sellInfo{
+	required int64 iPropsId=1;//物品id
+	optional int64 iPrice=2;//出售单价
+}
+
+//摊位信息
+message itemInfo{
+	required int32 iItemId=1;//摊位序号
+	optional int32 iStatus=2;//摊位状态 0:未上架 1:上架中 2:公示 3:已过期 4:审核 5:提现
+	optional goodsInfo goodsInfo=3;//商品信息
+	optional int32 iTime=4;//时间（秒）
+}
+
+//摊位列表
+message itemListInfo{
+	optional int64 iPriceAll=1;//提现总价格(登录会下发,用于小红点)
+	repeated itemInfo itemList=2;//摊位列表
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcTSGoodsListReq(treasureShop.goodsListInfo)returns(public.fake); //物品列表请求,上传编号,顺序,单前页数和类型。服务器下发rpcGoodsListSend
+	rpc rpcTSGoodsInfoReq(treasureShop.goodsInfo)returns(public.fake); //物品信息请求,上传物品摆摊id.服务器下发rpcGoodsInfoSend
+
+	rpc rpcTSGoodsBuy(treasureShop.goodsInfo)returns(public.fake); //购买物品,上传物品摆摊id
+	rpc rpcTSGoodsSell(treasureShop.sellInfo)returns(public.fake); //上架物品
+	rpc rpcTSGoodsSellAgain(treasureShop.goodsInfo)returns(public.fake); //再次上架物品
+	rpc rpcTSGoodsGetBack(treasureShop.goodsInfo)returns(public.fake); //取回物品,上传物品摆摊id
+
+	rpc rpcTSGoodsAttentionSet(treasureShop.goodsInfo)returns(public.fake); //设置关注,上传id和是否关注。服务器下发rpcGoodsInfoMod
+
+	rpc rpcTSItemLisReq(public.fake)returns(public.fake); //摊位列表请求,服务器下发rpcItemListSend
+
+	rpc rpcTSProfitGet(treasureShop.goodsInfo)returns(public.fake); //提取收益,上传物品摆摊id。服务器下发rpcTSItemDel和rpcItemListMod
+
+	rpc rpcTSGoodsReport(treasureShop.goodsInfo)returns(public.fake); //举报,上传摆摊id。服务器下发rpcGoodsInfoMod
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcTSGoodsListSend(treasureShop.goodsListInfo)returns(public.fake);//物品列表
+	rpc rpcTSGoodsInfoSend(treasureShop.goodsInfo)returns(public.fake);//物品信息
+
+	rpc rpcTSGoodsInfoMod(treasureShop.goodsInfo)returns(public.fake);//物品信息修改
+
+	rpc rpcTSItemListSend(treasureShop.itemListInfo)returns(public.fake); //摊位列表
+	rpc rpcTSItemListMod(treasureShop.itemListInfo)returns(public.fake); //摊位列表修改
+
+	rpc rpcTSItemMod(treasureShop.itemInfo)returns(public.fake); //摊位信息修改
+	rpc rpcTSItemDel(treasureShop.itemInfo)returns(public.fake); //摊位信息删除,上传序号
+
+	rpc rpcTSSellSuccess(common.int32_)returns(public.fake); //上架成功,上传商品辨识编号
+}

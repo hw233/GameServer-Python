@@ -1,0 +1,67 @@
+package entity;
+import "universal/public.proto";
+
+//机关具体类型
+enum tricksType{
+	BOMB_TRIGGER=1;	//地雷:bombInfo
+	BOMB_TIMEING=2;	//定时炸弹:bombInfo
+	KNIFT_RAIN=3;	//刀雨:lkfpInfo
+	LUCKER=4;	    //地刺:lkfpInfo
+	BOMB_ROUND=5;   //圆形炸弹:bombInfo
+	ERUPTION=6;	    //喷火:lkfpInfo
+	POISON_CLOUD=99;//毒雾:lkfpInfo
+}
+
+//炸弹,地雷
+message bombInfo{
+	optional int32 iCountdown=1; //倒数时间
+	optional int32 iTriggerType=2;//触发类型(1:自动触发 2:受击触发 3:范围触发)
+}
+
+//地刺,刀雨,火焰,毒雾等
+message lkfpInfo{
+	optional int32 iNumberX=1[default=1];//横向分布默认是1
+	optional int32 iNumberY=2[default=1];//纵向分布默认是1
+	optional int32 iCountdown=3;//倒数时间
+	optional int32 iHp=4;	//血量(喷火和毒雾机关才会填充此属性)
+	optional int32 iDef=5;	//防御(喷火和毒雾机关才会填充此属性)
+}
+
+//机关信息
+message tricksInfo{
+	required int32 iId=1;	//实体ID
+	required int32 iType=2;	//机关类型	
+	required int32 iDemage=3;//伤害值
+	optional int32 iAppearType=4[default=1];//出场方式(1:默认无 2:有出场)
+	required bytes trickEttInfo=5;//机关实体信息
+}
+
+//挑战赛AI特殊信息
+
+message petSkillMsg{
+	optional int32 iSkillNo=1;	//技能编号
+	optional float fSkillFactor=2;//技能系数
+	optional int32 iSkillDuration=3;//技能持续时间
+	optional float fSkillBaseNum=4;//技能基础数值
+	optional bytes sSkillActDesc=5;//激活描述
+	optional int32 iTriggType=6;	//触发类型
+	optional float fTriggValue=7;	//触发条件(值)
+	optional float fLvFactor=8;    //等级附加系数
+	optional int32 iActAvLv=9;	//激活要求的进阶等级
+	optional float fSkillEftValue=10;//技能效果值
+}
+message petMsg{
+	required int32 iPetNo=1;	//宠物编号
+	optional int32 iPetLv=2;	//宠物等级
+	optional int32 iStrengthLv=3;	//宠物强化等级
+	repeated petSkillMsg petSkill=4;	//宠物技能	
+}
+message aiAttrMsg{
+	optional int32 iWeaponShape=1;//武器外观	以下属性挑战赛使用
+	optional int32 iWeaponEffect=2;//武器特效
+	optional int32 iWearFDId=3;//角色穿戴的时装ID
+	optional int32 iAttaEffect=4;//武器附魔
+	optional int32 iAttaEffectAdd=5;//武器附魔属性
+	optional bool bAwark=6;	//是否觉醒
+	repeated petMsg petList=7;	//上阵宠物
+}

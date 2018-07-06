@@ -1,0 +1,118 @@
+//打造相关
+package collect;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//搜索
+message location{
+	required bytes fPosX=1;	//纬度
+	required bytes fPosY=2;	//经度
+}
+
+//标记事件
+message markerInfo{
+	required uint64 iEventId=1;//事件ID
+}
+
+//触发事件
+message triggerEvent{
+	required uint64 iEventId=1;//事件ID
+	required bytes fPosX=2;	//纬度
+	required bytes fPosY=3;	//经度
+}
+
+//事件信息
+message eventInfo{
+	required uint64 iEventId=1;//事件ID
+	optional uint64 iEventNo=2;//事件编号
+	optional uint32 iServerId=3;//服务器
+	optional uint64 iDistance=4;//距离
+	optional uint64 iTimeOut=5;//消失的时间
+	optional bytes fPosX=6;	//纬度
+	optional bytes fPosY=7;	//经度
+	optional bytes sPicture=8;//玩家头像
+	optional int32 iGender=9;//性别标志 1男 2女
+	optional bytes sName=10;//玩家名称
+	optional uint64 iComTime=11;//完成时间
+	optional int32 iSchool=12; //门派
+	optional uint64 iRoleId=13;//角色ID
+	optional bytes sServerName=14;//服务器名称
+}
+//事件列表
+message eventList{
+	required int32 eventType=1;//（1:搜索 2：标记，3：完成，4：触发）
+	repeated eventInfo lEventList=2;
+}
+
+//奖励信息
+message rewardInfo{
+	required uint32 iEventNo=1;//事件编号
+}
+
+//删除事件
+message delEventInfo{
+	required uint64 iEventId=1;//事件ID
+	required uint32 iEventType=2;//事件类型（1:搜索 2：标记，3：完成，4：触发）
+}
+
+
+//玩家信息
+message roleInfo{
+	required uint64 iRoleId=1;//角色ID
+	optional uint32 iServerId=2;//服务器
+	optional bytes fPosX=3;	//纬度
+	optional bytes fPosY=4;	//经度
+	optional bytes sPicture=5;//玩家头像
+	optional int32 iGender=6;//性别标志 1男 2女
+	optional bytes sName=7;//玩家名称
+	optional int32 iSchool=8; //门派
+	optional bytes sServerName=9;//服务器名称
+}
+
+message roleList{
+	repeated roleInfo lRoleList=1;//玩家信息列表
+}
+
+
+message addFriend{
+	required uint64 iRoleId=1;//角色ID
+	required uint32 iEventType=2;//事件类型（3：完成，4：触发）
+	required uint32 iEventNo=3;//事件编号
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcCollectTest(public.fake)returns(public.fake);	//测试
+
+	rpc rpcCollectEnter(common.int32_)returns(public.fake);//进入/退出收集玩法，0：退出，1：进入
+
+	rpc rpcCollectUpdateLocation(collect.location)returns(public.fake);//更新位置信息，用于查找周围玩家
+	rpc rpcCollectAround(collect.location)returns(public.fake);//周围玩家 返回rpcAroundRoleInfo
+
+	rpc rpcCollectSearch(collect.location)returns(public.fake);//搜索 返回rpcCollectEventList
+	rpc rpcCollectFight(collect.triggerEvent)returns(public.fake);//进入战斗
+
+	rpc rpcCollectSeeTrigger(public.fake)returns(public.fake);	//查看触发者 返回rpcCollectEventList
+	rpc rpcCollectSelfTrigger(public.fake)returns(public.fake);	//查看自己触发 返回rpcCollectEventList
+	rpc rpcCollectSeeMarker(public.fake)returns(public.fake);//查看标记事件 返回rpcCollectEventList
+	rpc rpcCollectMarker(collect.markerInfo)returns(public.fake);//标记事件
+	rpc rpcCollectDelEvent(collect.delEventInfo)returns(public.fake);//删除事件
+
+	rpc rpcCollectGreet(common.int64_)returns(public.fake);//打招呼
+	rpc rpcCollectAddFriend(collect.addFriend)returns(public.fake);//加为好友
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcCollectLeftCount(common.int32_)returns(public.fake);//剩余次数
+	rpc rpcCollectEventList(collect.eventList)returns(public.fake); //事件信息列表（1:搜索 2：标记，3：完成，4：触发）
+	rpc rpcCollectReward(collect.rewardInfo)returns(public.fake);//获得奖励
+	rpc rpcCollectDelEventResponse(collect.delEventInfo)returns(public.fake);//删除标记事件
+	rpc rpcAroundRoleInfo(collect.roleList)returns(public.fake);//周围玩家结果
+
+	rpc rpcCollectAddEvent(collect.eventList)returns(public.fake); //增加事件信息列表（2：标记，3：完成，4：触发）
+	//rpc rpcCollectDelEvent(collect.delEventInfo)returns(public.fake); //删除事件信息列表（2：标记，3：完成，4：触发）
+}

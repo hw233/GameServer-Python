@@ -1,0 +1,86 @@
+package act_teamRace;	//竞技场服务
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+
+//进入竞技场
+message enterMsg{
+	optional int32 timeout = 1; //活动剩余时间倒时(单位:秒)
+	optional int32 state = 2; //活动状态，0.已结束 1.准备中 2.进行中
+}
+
+//竞技信息
+message infoMsg{
+	optional int32 countWin = 1; //胜利场数
+	optional int32 countFight = 2; //战斗场数
+	optional int64 racePoint = 3; //竞技积分
+}
+
+//战报
+message fightInfo{
+	optional int64 time = 1; //时间
+	optional int32 times = 2; //场次
+	optional bytes result = 3; //结果
+}
+
+
+//竞技排行榜数据
+message rankMsg{
+	required int32 rankNo=1;//排名 0：表示没上榜   -1:离榜
+	required bytes name=2;//标题2
+	required bytes schoolName=3;//标题3
+	required int32 teamRacePoint=4;//标题4
+	optional uint64 iUid=5;//角色ID或者宠物ID
+}
+
+message rankAllMsg{
+	repeated rankMsg rankList = 1; //竞技排行榜数据列表
+	optional rankMsg rankMy = 2; //我的竞技排行榜数据
+}
+
+//战报列表
+message fightInfoList{
+	repeated fightInfo infoList = 1; //战报列表
+}
+
+//打开匹配界面
+message openMatch{
+	optional int32 coolTime = 1;//冷却倒数
+}
+
+//显示数据
+message roleInfo{
+	required int64 roleId = 1; //角色id
+	optional bytes name = 2; //玩家名
+	optional int32 shape = 3; //造型
+	optional int32 level = 4; //等级
+	optional int32 school = 5; //门派
+}
+
+//匹配对手信息
+message matchInfo{
+	repeated roleInfo roleInfoList=1;
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcTeamRaceRankGet(common.int32_)returns(public.fake);//请求竞技排行榜数据
+	rpc rpcTeamRaceQuit(public.fake)returns(public.fake);//请求离开竞技场
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcTeamRaceRankSend(act_teamRace.rankAllMsg)returns(public.fake);//发送竞技排行榜数据
+	rpc rpcTeamRaceEnter(act_teamRace.enterMsg)returns(public.fake);//进入竞技场
+	rpc rpcTeamRaceInfo(act_teamRace.infoMsg)returns(public.fake);//显示竞技信息
+	rpc rpcTeamRaceInfoChange(act_teamRace.infoMsg)returns(public.fake);//修改竞技信息
+	rpc rpcTeamRaceEnd(public.fake)returns(public.fake);//结束竞技，清除该活动的全部窗口
+	rpc rpcTeamRaceFightInfoList(act_teamRace.fightInfoList)returns(public.fake);//发送全部战报
+	rpc rpcTeamRaceFightInfoAdd(act_teamRace.fightInfo)returns(public.fake);//增加战报
+	rpc rpcTeamRaceOpenMatch(act_teamRace.openMatch)returns(public.fake);//打开匹配界面
+	rpc rpcTeamRaceCloseMatch(public.fake)returns(public.fake);//关闭匹配界面
+	rpc rpcTeamRaceMatchInfo(act_teamRace.matchInfo)returns(public.fake);//匹配对手信息
+}

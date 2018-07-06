@@ -1,0 +1,55 @@
+买盘
+
+dBuyOrderByOrderId
+{
+	买单id:{'price':价钱,'amount':购买数量,start':挂单时间,'duration':持续时间,'ownerId':主人id},
+	买单id:{'price':价钱,'amount':购买数量,start':挂单时间,'duration':持续时间,'ownerId':主人id},
+	买单id:{'price':价钱,'amount':购买数量,start':挂单时间,'duration':持续时间,'ownerId':主人id},
+	买单id:{'price':价钱,'amount':购买数量,start':挂单时间,'duration':持续时间,'ownerId':主人id},
+
+｝
+dBuyOrderByRoleId
+{
+	玩家id:set<买单id,买单id,买单id,买单id,买单id>
+	玩家id:set<买单id,买单id,买单id,买单id,买单id>
+	玩家id:set<买单id,买单id,买单id,买单id,买单id>
+	玩家id:set<买单id,买单id,买单id,买单id,买单id>
+}
+
+dBuyOrderByPrice
+{
+	价格:deq<买单id,买单id,买单id,买单id>,
+	价格:deq<买单id,买单id,买单id,买单id>,
+	价格:deq<买单id,买单id,买单id,买单id>,
+	价格:deq<买单id,买单id,买单id,买单id>,
+}
+dBuyOrderByTime
+[
+买单id,买单id,买单id,买单id,买单id,买单id,买单id
+]
+	
+
+
+########################################################################
+卖盘
+dSellOrder
+{
+	价格:{'items'：deq<物品id,物品id,物品id,物品id>,'amount':23452}
+	价格:{'items'：deq<物品id,物品id,物品id,物品id>,'amount':23452}
+	价格:{'items'：deq<物品id,物品id,物品id,物品id>,'amount':23452}
+	价格:{'items'：deq<物品id,物品id,物品id,物品id>,'amount':23452}
+
+}
+dBuyOrderByPropsId
+{
+	物品id:{'obj':物品对象,'price':价钱,'start':挂单时间,'duration':持续时间,'ownerId':主人id},
+	物品id:{'obj':物品对象,'price':价钱,'start':挂单时间,'duration':持续时间,'ownerId':主人id},
+	物品id:{'obj':物品对象,'price':价钱,'start':挂单时间,'duration':持续时间,'ownerId':主人id},
+｝
+dBuyOrderByRoleId
+{
+	玩家id:set<物品id,物品id,物品id,物品id,物品id>
+	玩家id:set<物品id,物品id,物品id,物品id,物品id>
+	玩家id:set<物品id,物品id,物品id,物品id,物品id>
+	玩家id:set<物品id,物品id,物品id,物品id,物品id>
+}

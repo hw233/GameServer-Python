@@ -1,0 +1,73 @@
+//阵法相关
+package lineup;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//技能信息
+message skillListMsg{
+	repeated int32 skillIdList=1; //技能编号列表
+}
+
+//阵眼信息
+message eyeMsg{
+	optional int64 eyeId=1; //阵眼id
+	optional int32 eyeNo=2; //阵眼导表编号
+	optional int32 speRatio=3; //速度系数
+	optional skillListMsg skillList=4; //技能
+	optional bool isStar=5; //是否变星
+	optional bool isUse=6; //是否装备中
+	optional int32 roleLv=7; //玩家等级 在超链接中使用
+	optional int32 stallCD=8;//摆摊冻结期。天数
+}
+
+//阵法信息
+message lineupMsg{
+	required int32 lineupId=1; //阵法编号
+	optional int32 level=2; //阵法等级
+	optional int32 exp=3; //阵法经验
+	optional int64 eyeId=4; //阵眼id
+}
+
+//物品信息
+message propsMsg{
+	required int32 id=1; //物品id
+	required int32 amount=2; //数量
+}
+
+//提升阵法
+message upgradeMsg{
+	required int32 lineupId=1; //阵法编号
+	repeated propsMsg propsList=2; //阵法书
+}
+
+//阵法列表
+message lineupListMsg{
+	optional int32 curLineupId=1; //当前开启阵法编号，0表示还没有任何开启阵法
+	repeated lineupMsg lineupList=2; //阵法信息列表
+	repeated eyeMsg eyeList=3; //阵眼信息列表
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcLineupLearn(common.int32_)returns(public.fake); //学习阵法
+	rpc rpcLineupUpgrade(lineup.upgradeMsg)returns(public.fake); //提升阵法
+
+	rpc rpcEyeUse(lineup.eyeMsg)returns(public.fake); //使用阵眼 (装备/卸下)
+	rpc rpcEyeChange(lineup.eyeMsg)returns(public.fake); //变幻
+}
+
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcLineupList(lineup.lineupListMsg)returns(public.fake); //发送阵法列表
+	rpc rpcLineupAdd(lineup.lineupMsg)returns(public.fake); //增加阵法
+	rpc rpcLineupDelete(common.int32_)returns(public.fake); //删除阵法
+	rpc rpcLineupMod(lineup.lineupMsg)returns(public.fake); //修改阵法信息
+
+	rpc rpcEyeAdd(lineup.eyeMsg)returns(public.fake); //增加阵眼
+	rpc rpcEyeDelete(lineup.eyeMsg)returns(public.fake); //删除阵眼
+	rpc rpcEyeMod(lineup.eyeMsg)returns(public.fake); //修改阵眼信息
+}

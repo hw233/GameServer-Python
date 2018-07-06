@@ -1,0 +1,95 @@
+一.拍卖场数据结构设计：
+
+dSellOrderByPropsId
+{
+	物品id:{'obj':物品对象,'price':价钱,'start':挂单时间,'duration':持续时间,'ownerId':主人id}
+	物品id:{'obj':物品对象,'price':价钱,'start':挂单时间,'duration':持续时间,'ownerId':主人id}
+	物品id:{'obj':物品对象,'price':价钱,'start':挂单时间,'duration':持续时间,'ownerId':主人id}
+
+｝
+
+#按攻击排序
+#按防御排序
+#按强化等级排序
+#各种排序,列数各不相同.
+
+dSellOrderByPrice
+{
+	物品面板id(类别id):[物品id,物品id,物品id,物品id] #按价格排序
+	物品面板id(类别id):[物品id,物品id,物品id,物品id] #按价格排序
+	物品面板id(类别id):[物品id,物品id,物品id,物品id] #按价格排序
+	物品面板id(类别id):[物品id,物品id,物品id,物品id] #按价格排序
+	物品面板id(类别id):[物品id,物品id,物品id,物品id] #按价格排序
+
+}
+
+
+dSellOrderByRoleId
+{
+	玩家id:set<物品id,物品id,物品id,物品id,物品id>
+	玩家id:set<物品id,物品id,物品id,物品id,物品id>
+	玩家id:set<物品id,物品id,物品id,物品id,物品id>
+	玩家id:set<物品id,物品id,物品id,物品id,物品id>
+}
+
+
+拍卖场最基本数据dSellOrderByPropsId以物品id为索引，
+记录上架物品详细数据，其他的数据结构dSellOrderByPrice，
+dSellOrderByRoleId都以此为基础，建立数据结构。
+有了dSellOrderByPropsId，其他的数据结构只需要记录物品id，减少了数据冗余。
+
+二.定时下架设计：
+设计（1）：
+利用gevent的定时器，让gevent维护定时时间，为每个上架物品注册一个定时器，
+在上架的时候添加定时器，下架或者被购买时注销定时器，时间到了就下架物品，
+设计（1)有个问题，上架物品很多时候，系统会注册很多的定时器，效率不够
+
+设计（2）：
+维护一个以下架时间从晚到早排序的物品id列表 lSellOrderByTime=[id1,id2,id3...]
+拍卖场只需要注册一个定时器，找到最早下架的物品，为它注册一个定时器，到时间了，
+检查lSellOrderByTime的物品那些到时间，做下架处理。
+设计（2)的更复杂，需要系统维护lSellOrderByTime，上架，下架，物品被购买
+都需要检查定时器，更新定时器，优点是相对于设计（1）效率更高。
+
+比较设计（1）和设计（2），最终使用了设计（2）完成定时下架。
+
+三.存盘优化：
+拍卖场中物品上架物品越多的话，拍卖场内数据发生变化频率越高，需要存盘的数据就越大
+1.减少存盘频率，不是每次拍卖场数据改变都马上存盘，可以放在队列中，空闲时存盘或者定时存盘
+2.避免冗余数据和避免存储非必要数据,比如不存储非必要的key
+data1={'obj':物品对象数据,'price':价钱,'start':挂单时间,'duration':持续时间,'ownerId':主人id}
+data2=(物品对象数据,price,start,duration,ownerId)
+data2比较data1要存储的数据量就减少了很多。
+3.时间，按照秒存储，需要存储的空间大于按照分钟存储，
+时间起点按照1970.1.1日起计算需要存储的空间会大于以2013.1.1日为起点。
+
+四.日志
+在关键的地方写日志，上架，下架物品，物品被购买
+日志格式尽量方便被程序分析处理。
+
+五.协议设计
+1.拉取自己上架的物品信息
+2.拉取某类型上架物品信息，以价格排序
+3.上架物品
+4.下架物品
+5.购买物品
+
+六.查找实现的bug
+原来的代码：
+idx=findSort.binarySearchCenter(lId,iPropsId,self.comparePriceFunc)
+lId.pop(idx)
+idx=findSort.binarySearchCenter(self.lSellOrderByTime,iPropsId,self.compareWeakUpFunc)
+self.lSellOrderByTime.pop(idx)
+更新后:
+#查找到的只是价格相同的,需要再遍历找到真正的物品id
+idx=findSort.binarySearchLeft(lId,iPropsId,self.comparePriceFunc)
+for i in xrange(idx,len(lId)):#
+	if iPropsId==lId[i]:
+		lId.pop(idx)
+			break
+#查找到的只是醒来时间相同的,需要再遍历找到真正的物品id
+idx=findSort.binarySearchLeft(self.lSellOrderByTime,iPropsId,self.compareWeakUpFunc)
+for i in xrange(idx,len(self.lSellOrderByTime)):
+	if iPropsId==self.lSellOrderByTime[i]:
+		self.lSellOrderByTime.pop(idx)
+			break

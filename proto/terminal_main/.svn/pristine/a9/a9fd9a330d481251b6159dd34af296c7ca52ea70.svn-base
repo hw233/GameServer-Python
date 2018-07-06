@@ -1,0 +1,30 @@
+//节日礼物服务
+package holiday;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//节日状态
+message stateMsg{
+	required int32 holidayId = 1; //节日编号
+	optional bool isTaken = 2; //是否已领取礼物
+}
+
+//节日礼物界面信息
+message UIMsg{
+	optional stateMsg currentHoliday = 1; //当前节日状态
+	optional int64 currentTime = 2; //当前时间(秒)
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcHolidayTake(holiday.stateMsg)returns(public.fake); //领取节日礼物(发送节日编号)
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcHolidayUI(holiday.UIMsg)returns(public.fake); //打开节日礼物界面
+	rpc rpcHolidayChange(holiday.stateMsg)returns(public.fake); //改变节日状态
+}

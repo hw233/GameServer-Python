@@ -1,0 +1,49 @@
+//成就相关
+package achv;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+
+
+message achvMsg{
+	required int32 id=1; //成就编号
+	optional int32 isDone=2; //是否完成，0.未完成  1.已完成
+	optional int32 doneTime=3;//完成时间
+	optional int32 progress=4;//进度
+	repeated int32 condDoneList=5;//达成的条件
+}
+
+message achvMsgAll{
+	repeated achvMsg achvMsgList = 1;//所有成就
+}
+
+message shareAchv{
+	required int32 id=1; //成就编号
+	required int32 channelId=2; //频道
+}
+
+message achvHyperlink{
+	required int32 id=1; //成就编号
+	optional int32 doneTime=3;//完成时间
+	
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcAchvShare(achv.shareAchv)returns(public.fake);		//分享成就
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcAchvAll(achv.achvMsgAll)returns(public.fake); 	//登录发送所有成就
+	rpc rpcAchvAdd(achv.achvMsg)returns(public.fake); 		//增加成就
+	rpc rpcAchvDelete(common.int32_)returns(public.fake);	//删除成就
+
+	rpc rpcAchvDone(achv.achvMsg)returns(public.fake);		//成就达成
+	rpc rpcAchvChangeProg(achv.achvMsg)returns(public.fake);//刷新成就进度
+	rpc rpcAchvChangeCond(achv.achvMsg)returns(public.fake);//刷新成就已达成条件
+
+	rpc rpcAchvHyperlink(achv.achvHyperlink)returns(public.fake);//查看成就超链接
+}

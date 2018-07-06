@@ -1,0 +1,53 @@
+package act_center;	//挂机活动服务
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//活动信息
+message actMsg{
+	required int32 actId=1;//活动ID
+	optional int32 count=2;//次数
+	optional int32 countMax=3;//最大次数
+	optional int32 actPoint=4;//活跃
+	optional int32 actPointMax=5;//最大活跃
+}
+
+//活跃信息
+message actPointMsg{
+	optional int32 actPoint=1;//活跃值
+	repeated int32 reward=2;//已拿活跃奖励
+}
+
+//活动中心信息
+message actCenterMsg{
+	repeated actMsg actList=1;//活动列表
+	optional actPointMsg actPoint=2;//活跃信息
+	optional int32 doublePoint=3;//双倍点
+	optional int32 frozenDoublePoint=4;//未领取的双倍点
+}
+
+//可接任务npc
+message taskNpcList{
+	repeated int64 npcList=1; //可接任务npc的id列表
+}
+
+//上行(客户端主动发起)
+service terminal2main{//登录注册账号相关
+	rpc rpcActCenterOpen(public.fake)returns(public.fake);//打开活动中心
+	rpc rpcActCenterJoin(common.int32_)returns(public.fake);//参加,上传活动ID
+	rpc rpcActCenterReward(common.int32_)returns(public.fake);//获取活跃奖励,上传奖励ID
+	rpc rpcActCenterGetDoublePoint(public.fake)returns(public.fake);//领取双倍点
+	rpc rpcActCenterGetJumeData(common.int32_)returns(public.fake);//获取地图跳转数据
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcActCenterInfo(act_center.actCenterMsg)returns(public.fake);//活动中心信息
+	rpc rpcActCenterMod(act_center.actPointMsg)returns(public.fake);//活跃信息改变
+	rpc rpcActCenterModCenter(act_center.actCenterMsg)returns(public.fake);//活动中心改变
+	rpc rpcActTaskNpcList(act_center.taskNpcList)returns(public.fake);//可接任务npc列表
+	rpc rpcActTaskNpcAdd(common.int64_)returns(public.fake);//增加可接任务npc
+	rpc rpcActTaskNpcDel(common.int64_)returns(public.fake);//删除可接任务npc
+}

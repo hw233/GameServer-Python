@@ -1,0 +1,159 @@
+//场景服务
+package scene;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//实体类型
+enum infoType {
+	INFO_ROLE=1;	//玩家角色
+	INFO_NPC=2;		//npc
+	INFO_DOOR=3;	//传送门
+}
+
+//周围角色可视化信息(不是主玩家的)
+message roleInfo{	
+	optional int32 shape=1;	//外观
+	optional bytes name=2;		//名字
+	optional int32 level=3;	//等级
+	optional int32 school=4;	//门派
+	optional bytes guildName=5;	//帮派
+	optional int32 teamId=6;	//队伍ID
+	optional int32 addon=7; //附加状态, 0x1.队伍的队长, 0x2.战斗中
+	repeated int32 shapeParts=8; // 造型部位, 参照role.roleAttr
+	optional int32 teamState=9;	//队伍状态，0.正常  1.暂离  2.离线  没有队伍-1
+	optional bytes title=10; //称谓
+	repeated int32 colors=11; // 染色, 参照role.roleAttr
+	optional int32 titleEffect=12; //称谓特效
+	optional int32 guildId=13;	//帮派ID
+	optional int32 rideShape=14; //坐骑造型
+	repeated int32 rideShapePart=15; //造型部位
+	repeated int32 rideColors=16; //坐骑染色
+	optional int32 d=17; //面向
+	optional int32 action=18; //动作
+}
+//npc信息
+message npcInfo{	
+	optional int32 iShape=1;		//外形
+	optional bytes sName=2;			//名字
+	optional int32 iNo=3;			//编号
+	repeated int32 shapeParts=4; // 造型部位, 参照role.roleAttr
+	optional bytes title=5; //称谓
+	repeated int32 colors=6; // 染色, 参照role.roleAttr
+	optional int32 effectId=7; // 特效编号
+	optional int32 d=8; //面向
+	optional int32 action=9; //动作
+	optional int32 addon=10; //附加状态(参考roleInfo)
+}
+
+
+//实体进入视野
+message entityEnter{
+	required infoType iEttType=1;		//实体类型
+	required int64 iEttId=2;			//实体id
+	required bytes sSerializedEtt=3;	//实体信息序列化后的字节流(类型：1.roleInfo(角色); 2.npcInfo(npc))	
+	optional int32 iX=4;				//坐标
+	optional int32 iY=5;	
+	optional int32 iSceneId=6;			//要进入的场景id (查错时有用)
+}
+
+//实体属性改变
+message entityChange{
+	required infoType iEttType=1;		//实体类型
+	required int64 iEttId=2;			//实体id
+	required bytes sSerializedEtt=3;	//实体信息序列化后的字节流(类型：1.roleInfo(角色); 2.npcInfo(npc))
+}
+
+//实体离开视野
+message entityLeave{
+	required int64 iEttId=1;//实体id	
+}
+
+//主角切换场景,主角进入场景
+message switchScene{
+	required int32 x=1; 				//主角x
+	required int32 y=2; 				//主角y
+	optional int64 iSceneId=3;		//场景id
+	optional int32 iSceneNo=4;			//场景编号
+	optional int32 iMapRes=6;			//地图资源
+	optional bytes sSceneName=7;		//场景名字
+}
+
+//移动包,上行的,下行的都是这个
+message moveInfo{
+	required int64 iEttId=1; //实体id
+	required int32 x=2;//x
+	required int32 y=3;//y
+	optional int32 sceneId=4; //场景id
+}
+
+
+//传送门
+message doorInfo{
+	optional int32 iNo=1;	//编号
+	optional int32 iShape=2;	//造型
+}
+
+//巡逻
+message walkGuardInfo{
+	required int32 sceneId=1; //场景id
+}
+
+//特效动画
+message effectMsg{
+	required int32 effectNo=1; //特效编号
+	optional int64 ettId=2; //实体id
+	optional int32 sceneId=3; //场景id
+	optional int32 x=4; //x坐标
+	optional int32 y=5; //y坐标
+}
+
+//传送
+message tranferMsg{
+	optional int32 sceneId=1; //场景id
+	optional int32 x=2; //x坐标
+	optional int32 y=3; //y坐标
+}
+
+//跟随信息
+message followMsg{
+	required int32 iFollowNo=1;  //跟随编号，唯一，可根据此编号来增删
+	optional npcInfo followInfo=2;  //跟随信息
+}
+
+//寻路信息
+message walkInfo{
+	required int64 iEttId=1;			//实体id
+	optional int32 iX=2;				//坐标
+	optional int32 iY=3;	
+	optional int32 iSceneId=4;			//要进入的场景id
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	//客户端同步包
+	rpc rpcRoleMove(scene.moveInfo)returns(public.fake);//玩家移动
+	//场景相关
+	rpc rpcEntityTrigger(common.int64_)returns(public.fake);//触碰了场景的实体(npc,血瓶,传送门,地上的道具...)
+	rpc rpcWorldTransfer(common.int32_)returns(public.fake);//通过世界地图传送
+	rpc rpcRobotTransfer(scene.tranferMsg)returns(public.fake);//机器人传送
+	rpc rpcBackSchool(public.fake)returns(public.fake);//回门派
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	//场景相关
+	rpc rpcEttEnter(scene.entityEnter)returns(public.fake);//实体进入视野
+	rpc rpcEttChange(scene.entityChange)returns(public.fake);//实体属性改变时
+	rpc rpcEttLeave(scene.entityLeave)returns(public.fake);//实体离开视野
+	rpc rpcSwitchScene(scene.switchScene)returns(public.fake);//角色登录的时候发送,主角切换场景开始(需要盖上过场动画)
+	rpc rpcEttMove(scene.moveInfo)returns(public.fake);//实体移动(包括npc等等的移动)
+	rpc rpcRoleMoveSelf(scene.moveInfo)returns(public.fake);//通知玩家本人移动
+	rpc rpcRoleWalkGuard(scene.walkGuardInfo)returns(public.fake);//巡逻
+	rpc rpcEttEffect(scene.effectMsg)returns(public.fake);//在实体上播放特效
+	rpc rpcScreenEffect(scene.effectMsg)returns(public.fake);//在屏幕上播放特效
+	rpc rpcAddFollower(scene.followMsg)returns(public.fake);//增加跟随者
+	rpc rpcDelFollower(scene.followMsg)returns(public.fake);//删除跟随者，只发送跟随者编号followNo
+	rpc rpcWalkToEtt(scene.walkInfo)returns(public.fake);//寻路到某个实体
+}

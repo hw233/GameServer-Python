@@ -1,0 +1,207 @@
+package props;//物品,包裹
+
+option py_generic_services=true;
+import "universal/public.proto";
+import "common.proto";
+
+enum attrType {//属性类型
+	CON=1;//体质
+	MAG=2;//魔力
+	STR=3;//力量
+	RES=4;//耐力
+	SPI=5;//精神
+	DEX=6;//敏捷
+	HP=7;//生命
+	MP=8;//真气
+	SP=9;//愤怒
+	FUWEN=10;//符能
+	PHYDAM=11;//物理伤害
+	MAGDAM=12;//法术伤害
+	PHYDEF=13;//物理防御
+	MAGDEF=14;//法术防御
+	SPE=15;//速度
+	CURE=16;//治疗强度
+	PHYCRIT=17;//物理暴击
+	MAGCRIT=18;//法术暴击
+	PHYRECRIT=19;//物理抗暴
+	MAGRECRIT=20;//法术抗暴
+	PHYREST=21;//物理抗性
+	MAGREST=22;//法术抗性
+	HPMAX=23;//生命上限
+	MPMAX=24;//真气上限
+	QUALITY=25;//品质
+	POS=26;//坐标
+	SEALHIT=27;//封印命中
+	RESEALHIT=28;//抵抗封印
+}
+
+//属性信息
+message attrMsg{
+	required attrType name=1;//属性名称
+	required bytes sValue=2;//属性值
+}
+
+//宝石属性信息
+message gemAttrMsg{
+	required int32 gemNo=1;//宝石编号
+	required attrMsg attr=2;//属性信息
+	optional int32 gemLv=3;//宝石等级
+	optional int32 gemHole=4;//宝石所在孔的序号孔1，孔2
+}
+
+//普通道具信息
+message propsMsg{
+	required uint64 iPropsId=1;//物品id
+	optional uint32 iNo=2;//物品编号
+	optional uint32 iPropsStack=3;//叠加数量
+	optional attrMsg valueInfo=4;//效果信息
+	optional bytes 	sDesc=5;//服务器描述	
+	optional int32 addon=6;//附加状态,0x1.待修理,0x2绑定,0x4珍品
+	optional int32 stallCD=7;//摆摊冻结期。天数
+}
+
+//装备信息
+message equipMsg{	
+	required bytes baseSerialized=1;//基础消息,propsMsg的序列化
+	repeated attrMsg baseAttr=2;//基础属性
+	repeated attrMsg addAttr=3;//附加属性
+	repeated gemAttrMsg gemAttr=4;//宝石属性
+	optional int32 fiveAttr=5;//五行属性 0没有1金2木3水4火5土6无
+	optional int32 life=6;//耐久度
+	optional int32 score=7;//评分
+	optional int32 spEffect=8;//特效
+	optional int32 spSkill=9;//特技
+	optional int32 isMake=10;//是否打造0系统掉落1玩家打造
+	optional bool bClearGem=11;//是否消除宝石信息
+}
+
+enum buttonType {//按钮类型
+	WEAR=1;//穿上
+	DOFF=2;//卸下
+	USE=3;//使用
+	SELL=4;//出售
+	RESOLVE=5;//分解
+	COMPOUND=6;//合成
+	DISCARD=7;//丢弃
+	REPAIRED=8;//修理
+	STORAGE_IN=9;//移入仓库
+	STORAGE_OUT=10;//移出仓库
+	INLAY = 11;//镶嵌
+	STALL=12;//摆摊出售
+	OPEN=16;//开启礼包
+	GETBACK=101;//取出
+	USEPET=102;//对宠物使用
+}
+
+//包裹物品信息
+message packageItemMsg{
+	required uint32 iPropsNo=1;//物品编号
+	required bytes sSerialized=2;//字节流 物品的msg序列化
+	optional uint32 iPackageNo=3;//1:普通物品 2:任务物品
+}
+
+//所有包裹物品信息
+message packageAllItem{
+	repeated packageItemMsg allItem=1;//包裹物品信息
+}
+
+message itemMsg{
+	required uint32 iPropsNo=1;//物品编号
+	optional bytes sSerialized=2;//字节流 物品的msg序列化
+}
+
+//所有装备
+message equipAllItem{
+	required int32 iCurScheme=1;//当前方案编号
+	repeated itemMsg allItem=2;//装备区装备信息
+}
+
+//所有临时背包物品
+message numenBagAllItem{
+	repeated itemMsg allItem=1;//临时背包物品信息
+}
+
+//物品位置信息
+message posMsg{
+	required uint64 iPropsId=1;//物品ID
+	optional int32 iPackageNo=2;//物品位置 0:背包 1:身上装备区 2:仓库 3:临时背包
+}
+
+//按钮信息
+message buttonMsg{
+	required posMsg pos=1;//物品位置
+	required buttonType iButtonType=2;//按钮类型
+	optional int64 targetId=3; //目标id，如宠物id
+	optional int32 count=4; //使用数量
+}
+
+//物品Id列表
+message propsIdList{
+	repeated uint64 iPropsIds=1;//物品Id
+}
+
+//仓库分页名字
+message storageName{
+	required int32 iNo=1;//编号
+	required bytes sName=2;//名字
+}
+
+//仓库信息
+message storageMsg{
+	repeated storageName nameList=1;//仓库分页的名字
+	repeated itemMsg allItem=2;//仓库物品信息
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	//包裹相关
+	rpc rpcPropsDetail(props.posMsg)returns(public.fake);//请求包裹道具详细信息
+
+	rpc rpcAddCapacity(common.int32_)returns(public.fake);//背包解锁 上传解锁行数
+	
+	rpc rpcClickButton(props.buttonMsg)returns(public.fake);//点击按钮,通过按钮类型buttonType处理对应的事件
+
+	//临时背包取回物品
+	rpc rpcGetBackProps(props.propsIdList)returns(public.fake);//从临时背包取回物品
+
+	//装备相关
+	rpc rpcExchangeEquipScheme(common.int32_)returns(public.fake);//切换装备方案 上传方案编号
+
+	//仓库相关
+  	rpc rpcReqOpenStorage(public.fake)returns(public.fake);//请求打开仓库
+  	rpc rpcBuyStorage(public.fake)returns(public.fake);//购买仓库
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+
+	//包裹,装备相关
+	rpc rpcAddProps(props.packageItemMsg)returns(public.fake);//新增物品到包裹
+	rpc rpcModProps(props.packageItemMsg)returns(public.fake);//修改包裹物品的信息
+	rpc rpcDelProps(common.int64_)returns(public.fake);//从包裹删除物品
+	rpc rpcAllProps(props.packageAllItem)returns(public.fake);//登录一次性发送包裹所有物品
+	rpc rpcAddPropsFlash(props.packageItemMsg)returns(public.fake);//获得物品动画
+	rpc rpcGetNewProps(props.propsIdList)returns(public.fake);//获得新物品 上传所有新物品的id
+	rpc rpcShortcut(props.packageItemMsg)returns(public.fake);//快捷使用
+
+	rpc rpcAddEquip(props.itemMsg)returns(public.fake);//穿装备
+	rpc rpcModEquip(props.itemMsg)returns(public.fake);//修改装备区装备的信息
+	rpc rpcDelEquip(common.int64_)returns(public.fake);//脱装备
+	rpc rpcAllEquip(props.equipAllItem)returns(public.fake);//登录一次性发送所有装备
+
+	//临时背包相关
+	rpc rpcAdd2NumenBag(props.itemMsg)returns(public.fake);//加入到临时背包
+	rpc rpcMod2NumenBag(props.itemMsg)returns(public.fake);//修改临时背包物品的信息
+	rpc rpcDel2NumenBag(common.int64_)returns(public.fake);//从临时背包删除物品
+	rpc rpcAll2NumenBag(props.numenBagAllItem)returns(public.fake);//登录一次性发送所有临时背包物品
+
+	//仓库相关的
+	rpc rpcStorageInfo(props.storageMsg)returns(public.fake);//下发仓库信息
+	rpc rpcAddStorage(props.storageName)returns(public.fake);//增加仓库
+	rpc rpcModStorageInfo(props.storageName)returns(public.fake);//修改仓库信息
+	rpc rpcAdd2Storage(props.itemMsg)returns(public.fake);//加入物品到仓库
+	rpc rpcMod2Storage(props.itemMsg)returns(public.fake);//修改仓库物品的信息
+	rpc rpcDel2Storage(common.int64_)returns(public.fake);//从仓库删除物品
+	
+	
+}

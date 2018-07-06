@@ -1,0 +1,121 @@
+//任务相关
+package task;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//任务npc
+message npcMsg{
+	required int64 id=1;  //id
+	optional bytes name=2; //名称
+	optional int32 shape=3; //造型
+	optional int32 sceneId=4; //场景id
+	optional int32 x=5; //x坐标
+	optional int32 y=6; //y坐标
+	optional int32 d=7; //面向
+	repeated int32 shapeParts=8; // 造型部位, 参照role.roleAttr
+	optional int32 type=9; //0.正常 1.闲人 2.地上物品
+	optional bytes title=10; //称谓
+	repeated int32 colors=11; // 染色, 参照role.roleAttr
+	optional int32 action=12; // 动作
+	optional int32 effectId=13; // 特效编号
+}
+
+//任务所需物品或宠物
+message needMsg{
+	required int32 no=1; //编号
+	required int32 amount=2; //数量
+}
+
+//任务信息
+message taskMsg{
+	required int64 id=1; //任务编号
+	optional int32 targetType=2; //目标类型 0.普通  1.寻物  2.寻人 21.寻多人 3.巡逻战斗
+	optional int32 icon=3; //图标
+	optional bytes title=4; //标题
+	optional bytes intro=5; //简介
+	optional bytes detail=6; //详情
+	optional bytes rewardDesc=7; //奖励描述
+	repeated npcMsg npcList=8;  //任务npc
+	repeated int32 sceneNpcList=9;  //场景npc
+	repeated needMsg propsList=10;  //所需物品
+	optional int32 time=11; //剩余时间
+	optional int32 canAbort=12;//是否可以放弃
+	optional int32 isDone=13; //是否完成，0.未完成  1.已完成
+}
+
+message taskMsgAll{
+	repeated taskMsg taskMsgList = 1;//所有任务
+}
+
+//任务请求
+message taskQuest{
+  required int32 taskId=1; //任务编号
+  required int32 npcId=2; //npc的id(包括任务npc和普通npc)
+}
+
+//前往找Npc
+message goAheadNpc{
+	required int32 taskId=1; //任务编号
+	required int32 sceneId=2; //场景id
+	required int32 x=3; //x坐标
+	required int32 y=4; //y坐标
+	required int32 npcId=5; //目标npc
+}
+
+//前往坐标
+message goAheadPos{
+	required int32 taskId=1; //任务编号
+	required int32 sceneId=2; //场景id
+	required int32 x=3; //x坐标
+	required int32 y=4; //y坐标
+	optional int32 npcId=5; //目标npc，非0时停在npc前，以防与npc重叠
+}
+
+//剧情信息
+message storyMsg{
+	required int32 taskId=1; //任务编号
+	required int32 storyId=2; //剧情编号
+}
+
+
+//宠物任务信息
+message petTaskInfo{
+	required int32 pos = 1;//位置
+	required int32 petNo=2; //宠物编号
+	optional int32 shape=3; //宠物造型
+	repeated int32 shapeParts=4; //宠物造型部位, 参照role.roleAttr
+	optional int32 isDone=5; //是否完成，0.未完成  1.已完成
+}
+
+message petTaskSelect{
+	required int32 showType=1;//显示类型 （0：预览异兽，1:选择异兽)
+	repeated petTaskInfo petInfo=2;//宠物任务信息
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcTaskAbort(task.taskMsg)returns(public.fake); //放弃任务
+	rpc rpcTaskQuest(task.taskQuest)returns(public.fake); //任务请求
+	rpc rpcTaskQuestGoAhead(task.taskMsg)returns(public.fake); //请求前往
+	rpc rpcTaskStoryStop(common.int32_)returns(public.fake); //结束客户端剧情
+
+	rpc rpcTaskPetSelect(common.int32_)returns(public.fake);//领取宠物任务
+	rpc rpcTaskLookPetInfo(common.int32_)returns(public.fake);//查看宠物信息
+	rpc rpcTaskAskForHelp(common.int32_)returns(public.fake);//任务求助
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcTaskAll(task.taskMsgAll)returns(public.fake); //登录发送所有任务
+	rpc rpcTaskAdd(task.taskMsg)returns(public.fake); //增加任务
+	rpc rpcTaskDel(task.taskMsg)returns(public.fake); //删除任务
+	rpc rpcTaskChange(task.taskMsg)returns(public.fake); //改变任务信息
+	rpc rpcTaskGoAheadNpc(task.goAheadNpc)returns(public.fake); //前往Npc
+	rpc rpcTaskGoAheadPos(task.goAheadPos)returns(public.fake); //前往坐标
+	rpc rpcTaskStoryPlay(task.storyMsg)returns(public.fake); //播放客户端剧情
+	rpc rpcTaskStoryStop(common.int32_)returns(public.fake); //结束客户端剧情(用于通知队员)
+
+	rpc rpcTaskPetInfo(task.petTaskSelect)returns(public.fake);//宠物任务，查看选择宠物
+}

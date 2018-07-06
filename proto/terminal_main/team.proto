@@ -1,0 +1,149 @@
+//队伍相关
+package team;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+import "lineup.proto";
+import "buddy.proto";
+
+//队员
+message member{
+	required int64 roleId=1; //角色id
+	optional int32 shape=2; //造型
+	optional bytes name=3; //角色名
+	optional int32 level=4; //等级
+	optional int32 school=5; //职业
+	optional int32 state=7; //状态，0.正常  1.暂离  2.离线
+	optional int32 pos=8; //位置
+	repeated int32 shapeParts=9; //造型部位，参照role.roleAttr
+	repeated int32 colors=10; // 染色, 参照role.roleAttr
+}
+
+//队伍目标
+message teamMatchInfo{
+	optional int32 target=1;	//任务目标
+	repeated int32 subtarget=2;	//二级选项，多选
+	optional int32 auto=3;		//是否自动匹配
+}
+
+//队伍
+message teamInfo{
+	optional int32 teamId=1; //队伍id
+	optional int64 leader=2; //队长
+	optional lineup.lineupMsg lineup=3; //阵法信息
+	repeated member memberList=4; //队员列表
+	repeated member joinList=5;  //加入申请列表
+	optional buddy.teamBuddyList buddyList=6;//伙伴信息
+	optional teamMatchInfo matchInfo=7; //匹配信息
+}
+
+//聊天
+message chat{
+	required bytes msg=1;  //消息
+	optional common.chatSender sender=2; //发送者，没有此项时表示是队伍系统发送的信息
+}
+
+//队伍创建信息
+message makeInfo{
+	optional int32 teamId=1; //队伍id
+	optional int64 leader=2; //队长
+	repeated int64 memberList=3; //在队队员列表
+	optional int32 size=4; //队伍人数
+}
+
+//队员删除信息
+message delMemberInfo{
+	optional int32 teamId=1; //队伍id
+	repeated int64 memberList=2; //删除队员列表
+}
+
+//调整站位
+message posInfo{
+	optional int64 srcId=1; //源玩家id
+	optional int64 targetId=2; //目标玩家id
+}
+
+//频道id定义：1.世界 2.门派 3.队伍 31.组队 4.仙盟 5.当前频道 6.系统频道 61.传闻频道 7.战斗频道
+
+//发送的消息
+message sendMsg{
+	required int32 channelId=1; //频道id(请看上面的频道id定义)
+	optional bytes content=2; //内容
+	optional int32 isAudio=3; //是否语音，0.否 1.是
+}
+
+//队长状态，匹配到的玩家信息
+message matchPlayer{
+	optional int64 roleId=1; //角色id
+	optional int32 shape=2; //造型
+	optional bytes name=3; //角色名
+	optional int32 level=4; //等级
+	optional int32 school=5; //职业
+	optional int32 invite=6;	//是否已邀请(0:未邀请 1:已邀请)
+}
+
+//所有匹配任务的玩家
+message matchMemberInfo{
+	repeated matchPlayer playerList=1;//玩家信息
+	optional int32 teamCnt=2;//队伍数量
+	optional int32 playerCnt=3;//玩家数量
+}
+
+//队伍
+message matchTeam{
+	optional int32 teamId=1; //队伍id
+	optional int64 leader=2; //队长
+	repeated member memberList=4; //队员列表
+	optional int32 apply=5;	//是否已申请(0:未申请 1:已申请)
+}
+
+//所有匹配任务的队伍
+message matchTeamInfo{
+	repeated matchTeam teamList=1;//队伍信息
+	optional int32 teamCnt=2;//队伍数量
+	optional int32 playerCnt=3;//玩家数量
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcTeamCreate(public.fake)returns(public.fake); //创建队伍
+	rpc rpcTeamQuit(public.fake)returns(public.fake); //退出队伍
+	rpc rpcTeamSetLeader(team.member)returns(public.fake); //升为队长
+	rpc rpcTeamKick(team.member)returns(public.fake); //请离队伍
+	rpc rpcTeamLeave(public.fake)returns(public.fake); //暂离队伍
+	rpc rpcTeamBack(public.fake)returns(public.fake); //回归队伍
+	rpc rpcTeamInvite(team.member)returns(public.fake); //邀请入队
+	rpc rpcTeamApplyJoin(team.member)returns(public.fake); //申请入队
+	rpc rpcTeamApplyJoinAccept(team.member)returns(public.fake); //接受申请入队
+	rpc rpcTeamApplyJoinClear(public.fake)returns(public.fake); //清空申请列表
+	rpc rpcTeamSetPos(team.posInfo)returns(public.fake); //调整站位
+	rpc rpcTeamInviteBack(team.member)returns(public.fake); //邀请归队
+	rpc rpcFastChat(team.sendMsg)returns(public.fake);//一键喊话
+
+	//组队平台
+	rpc rpcTeamSetTarget(team.teamMatchInfo)returns(public.fake); //设置匹配目标
+	rpc rpcTeamAutoMatch(common.int32_)returns(public.fake); //自动/取消匹配 1：自动匹配 0：取消匹配
+	rpc rpcTeamRefreshMatch(public.fake)returns(public.fake); //刷新匹配界面
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcTeamInfo(team.teamInfo)returns(public.fake); //队伍信息
+	rpc rpcTeamInfoChange(team.teamInfo)returns(public.fake); //改变队伍信息
+	rpc rpcTeamMemberChange(team.member)returns(public.fake); //改变队员属性
+	rpc rpcTeamRelease(public.fake)returns(public.fake); //解散队伍
+	rpc rpcTeamJoinAdd(team.member)returns(public.fake); //增加入队申请
+	rpc rpcTeamJoinDel(team.member)returns(public.fake); //删除入队申请
+	rpc rpcTeamApplyJoinClear(public.fake)returns(public.fake); //清空申请列表
+	rpc rpcTeamBroadcastMake(team.makeInfo)returns(public.fake); //广播队伍
+	rpc rpcTeamBroadcastDelMember(team.delMemberInfo)returns(public.fake); //广播删除队员
+
+	//组队平台
+	rpc rpcTeamMatchPlayer(team.matchMemberInfo)returns(public.fake);//队长状态，匹配到的玩家信息
+	rpc rpcTeamMatchTeam(team.matchTeamInfo)returns(public.fake);//玩家状态，匹配到的队伍信息
+	rpc rpcTeamChangeTarget(team.teamMatchInfo)returns(public.fake);//队伍目标
+	rpc rpcTeamQuick(team.teamMatchInfo)returns(public.fake);//便捷组队，打开组队平台界面
+	rpc rpcTeamAutoMatchRes(common.int32_)returns(public.fake);//自动匹配回应
+}

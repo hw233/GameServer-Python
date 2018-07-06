@@ -1,0 +1,187 @@
+//战斗相关
+package war;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//战士对白
+message chat{
+	required int32 idx=1; //战士编号
+	required bytes msg=2;//对白内容
+	optional int32 event=3;//对白事件 0.无  1:登场,2:出招,3:挨打,4:保护,5:主人倒地,6:使用道具,7:逃跑失败,8:主人倒地 9.被动技喊招
+}
+
+//战斗信息
+message warInfo{
+	optional int32 type=1;		//战斗类型
+	optional int32 lineup0=2;		//阵法
+	optional int32 lineup1=3;		//阵法
+	optional int32 summonNumMax=4; //召唤上限
+	optional int32 summonNum=5; //已召唤数
+	optional int32 propsNumMax=6; //使用物品数上限
+	optional int32 propsNum=7; //已使用物品数
+	optional bool autoFight=8; //是否自动战斗, false.手动  true.自动
+	repeated int64 petIdList=9; //已出战宠物列表
+	optional bool watch=10; //是否观战， false.否  true.是
+	optional int32 side=11; //队伍站队
+}
+
+//战士
+message warrior{
+	required int32 idx=1; //战士编号
+	optional int64 pid=2; //玩家和宠物本身的id, 只有玩家id相同且战士类型相同时才是本玩家
+	optional bytes name=3; //名称
+	optional int32 shape=4; //造型
+	optional int32 type=5;	//战士类型, 0.普通怪物 1.Boss 2.玩家 3.宠物 4.观战 5.助战 6.阵眼战士
+	optional int32 side=6; //队伍站队
+	optional int32 pos=7; //位置
+	optional int32 level=8; //等级
+	optional int32 hp=9; //生命
+	optional int32 hpMax=10; //生命上限
+	optional int32 mp=11; //真气
+	optional int32 mpMax=12; //真气上限
+	optional int32 sp=13; //愤怒
+	optional int32 spMax=14; //愤怒上限
+	optional int32 fuwen=15; //符能
+	optional int32 fuwenMax=16; //符能上限
+	optional int32 status=17; //状态, 0.正常 1.死亡
+	optional int32 hidden=18; //是否隐藏，0.显示 1.隐藏
+	repeated int32 shapeParts=19; //造型部位，参照role.roleAttr
+	optional int32 defaultPerform=20; //默认法术, 1.物理攻击 5.防御  其它.法术编号
+	repeated int32 colors=21; // 染色, 参照role.roleAttr
+	repeated int32 performList=22;// 法术列表(阵眼才发)
+	optional int32 spe=23;//速度(阵眼才发)
+	optional int32 fiveEl=24; //五行, 0.没有五行属性, 1.金, 2.木, 3.水, 4.火, 5.土, 6.无
+}
+
+//战斗buff
+message buff{
+	required int32 idx=1; //战士编号
+	optional int32 type=2; //buff类型
+	optional int32 pos=3; //buff位置
+	required int32 id=4; //buff编号
+	optional int32 bout=5; //回合数, 为0时表示删除
+}
+
+//战斗指令
+message cmd{
+	required int32 idx=1; //战士编号
+	optional int32 target=2; //目标
+	optional int32 pfId=3; //法术编号
+	optional int64 itemId=4; //物品id
+}
+
+//战斗默认法术
+message defaultMag{
+	required int32 idx=1; //战士编号
+	required int32 pfId=2; //法术编号
+}
+
+//战士受击状态
+message status{
+	required int32 idx=1; //战士编号
+	optional int32 hp=2; //扣血或加血, 负数.扣血 正数.加血 0.忽略
+	optional int32 status=3; //状态, 0.正常 1.死亡
+	optional int32 action=4; //受击动作, 0.无 1.被击中 2.防御 3.躲闪
+	optional int32 effect=5; //受击效果, 0.无 1.暴击
+	optional int32 kickout=6; //是否踢出场，0.否 1.是
+}
+
+//真气、愤怒等数值状态的变化
+message valStatus{
+	required int32 idx=1; //战士编号
+	optional int32 mp=2; //真气
+	optional int32 sp=3; //愤怒
+	optional int32 fuwen=4; //符能
+}
+
+//法术
+message perform{
+	required int32 idx=1; //战士编号, 为0时表示没有施法者
+	required int32 magicId=2; //动画编号, 1.物理攻击 2.防御 5.保护 6.逃跑成功(没有施法者) 7.逃跑失败(没有施法者) 8.捕捉成功 9.捕捉失败 10.召唤 11.召回 13.使用物品
+	repeated int32 targets=3; //目标编号
+	optional int32 propsNo=4; //物品编号，仅当使用物品时有效
+}
+
+//合击
+message together{
+	repeated int32 idxs=1; //战士编号
+	required int32 target=2; //目标编号
+}
+
+//本轮信息
+message turn{
+	required int32 bout=1; //第几回合
+	required int32 last=2; //是否最后一轮
+}
+
+//新一轮准备
+message turnReady{
+	required int32 bout=1; //第几回合
+	required int32 timeout=2; //超时时间
+}
+
+//新一轮结束
+message turnEnd{
+	required int32 last=1; //是否最后一轮
+}
+
+//战斗失败选项框
+message fail{
+	repeated int32 options=1; //选项，1.录像  2.宠物  3.修炼  4.强化
+	optional int32 iTimeout=2[default=20000];//Countdown 倒数n毫秒后自动关闭，剩5000毫秒时显示倒数
+}
+
+//交换位置
+message exchangeInfo{
+	required int32 srcIdx=1; //源战士编号
+	required int32 targetIdx=2; //目标战士编号
+	optional int32 side=3; //队伍站队
+	optional int32 srcPos=4; //源战士位置
+	optional int32 targetPos=5; //目标战士位置
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcWarCmdPhy(war.cmd)returns(public.fake);//物理攻击指令
+	rpc rpcWarCmdMag(war.cmd)returns(public.fake);//法术攻击指令
+	rpc rpcWarCmdSE(war.cmd)returns(public.fake);//特技攻击指令
+	rpc rpcWarCmdItem(war.cmd)returns(public.fake);//使用道具指令
+	rpc rpcWarCmdDefend(war.cmd)returns(public.fake);//防御指令
+	rpc rpcWarCmdProtect(war.cmd)returns(public.fake);//保护指令
+	rpc rpcWarCmdSummon(war.cmd)returns(public.fake);//召唤指令
+	rpc rpcWarCmdEscape(war.cmd)returns(public.fake);//逃跑指令
+	rpc rpcWarCmdCapture(war.cmd)returns(public.fake);//捕捉指令
+	rpc rpcWarCmdDefaultMag(war.defaultMag)returns(public.fake);//设置默认法术指令
+	rpc rpcWarLeaveWatch(public.fake)returns(public.fake);//退出观战
+	rpc rpcWarEnterWatch(common.int64_)returns(public.fake);//进入观战
+	rpc rpcWarDrawEnd(public.fake)returns(public.fake);//客户端回合动画播放结束
+	rpc rpcWarChange(war.warInfo)returns(public.fake);//修改战斗信息
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcWarDebugTips(common.bytes_)returns(public.fake);//战斗调试信息
+	rpc rpcWarSay(war.chat)returns(public.fake);//战士对白
+	rpc rpcWarStart(war.warInfo)returns(public.fake);//战斗开始
+	rpc rpcWarEnd(public.fake)returns(public.fake);//战斗结束
+	rpc rpcWarChange(war.warInfo)returns(public.fake);//修改战斗信息
+	rpc rpcWarAddWarrior(war.warrior)returns(public.fake);//增加战士
+	rpc rpcWarDelWarrior(war.warrior)returns(public.fake);//删除战士
+	rpc rpcWarChangeAttr(war.warrior)returns(public.fake);//修改战士属性
+	rpc rpcWarBuff(war.buff)returns(public.fake);//战士buff
+	rpc rpcWarTurn(war.turn)returns(public.fake);//新一轮或最后一轮
+	rpc rpcWarTurnReady(war.turnReady)returns(public.fake);//本轮准备，可下达指令
+	rpc rpcWarTurnBegin(public.fake)returns(public.fake);//本轮开始，不可再下达指令，服务端开始结算
+	rpc rpcWarTurnEnd(war.turnEnd)returns(public.fake);//本轮结束，服务端发送数据完毕，客户端开始播放动画
+	rpc rpcWarTurnWait(war.turn)returns(public.fake);//等待本轮播放动画结束
+	rpc rpcWarSetCmd(war.warrior)returns(public.fake);//已设置指令的战士
+	rpc rpcWarWarriorStatus(war.status)returns(public.fake);//战士状态
+	rpc rpcWarPerform(war.perform)returns(public.fake);//使用法术
+	rpc rpcWarTogetherAttack(war.together)returns(public.fake);//合击
+	rpc rpcWarCmdEnd(war.warrior)returns(public.fake);//出招结束
+	rpc rpcWarFailBox(war.fail)returns(common.int32_);//战斗失败选项框
+	rpc rpcWarWarriorValStatus(war.valStatus)returns(public.fake);//战士数值状态变化，如真气
+	rpc rpcWarExchangePos(war.exchangeInfo)returns(public.fake);//战士交换位置
+ }

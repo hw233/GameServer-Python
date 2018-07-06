@@ -1,0 +1,53 @@
+package dye;
+option py_generic_services=true;
+import "universal/public.proto";
+
+//染色信息
+message dyeMsg{
+	required int32 key=1;//部位[头发1,身躯2,衣服3,武器4,影子5,帽子6,...]
+	optional int32 suit=2;//套装
+	optional int32 color=3;//染色
+}
+
+message roleDyeInfo {
+	optional int32 schemeNo=1;//保存的染色方案号
+	repeated dyeMsg dyeInfo=2; //染色信息
+}
+
+message petDyeInfo {
+	required int64 petId=1;//异兽ID
+	optional int32 schemeNo=2;//方案编号
+}
+
+message rideDyeMsg{
+	required int32 shape=1;//部位[飘尾1,身躯2]
+	optional int32 color=2;//方案编号
+}
+
+message rideDyeInfo {
+	required int64 rideId=1;//坐骑ID
+	repeated rideDyeMsg dyeInfo=2; //坐骑染色信息
+	
+}
+
+message roleDyeScheme {
+	repeated roleDyeInfo dyeScheme=1;//染色方案列表
+}
+
+//上行
+service terminal2main{
+	rpc rpcRoleDyeSchemeReq(public.fake)returns(public.fake);//请求角色保存的染色方案
+	rpc rpcRoleDye(dye.roleDyeInfo)returns(public.fake);//角色染色
+	rpc rpcRoleDyeSaveScheme(public.fake)returns(public.fake);//保存染色方案
+	rpc rpcRoleDyeUseScheme(dye.roleDyeInfo)returns(public.fake);//使用保存的染色方案(发送roleDyeInfo.schemeNo即可)
+	rpc rpcRoleDyeDelScheme(dye.roleDyeInfo)returns(public.fake);//删除保存的染色方案(发送roleDyeInfo.schemeNo即可)
+	rpc rpcPetDye(dye.petDyeInfo)returns(public.fake);//异兽染色
+	rpc rpcRideDye(dye.rideDyeInfo)returns(public.fake);//坐骑染色
+}
+
+//下行
+service main2terminal{
+	rpc rpcDyeUI(public.fake)returns(public.fake);//打开染色界面
+	rpc rpcRoleDyeSchemeResponse(dye.roleDyeScheme)returns(public.fake);//已保存的角色染色方案
+	rpc rpcDyeDone(public.fake)returns(public.fake);//染色操作完成
+}

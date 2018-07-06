@@ -1,0 +1,22 @@
+#-*-coding:utf-8-*-
+#作者:叶伟龙@龙川县赤光镇
+#导表开始
+gdData={
+	1:{"一级界面":"PackageMain"},
+	2:{"一级界面":"SkillMain"},
+	3:{"一级界面":"StrengthenMain"},
+	4:{"一级界面":"TeamPanel"},
+	5:{"一级界面":"SystemMain"},
+	6:{"一级界面":"ShopTransactionMain"},
+	7:{"一级界面":"ActivityMain"},
+	8:{"一级界面":"RankingMain"},
+	9:{"一级界面":"MailPanel"},
+	10:{"一级界面":"MarketMain"},
+	11:{"一级界面":"UnionMain"},
+	12:{"一级界面":"PetGet"},
+	13:{"一级界面":"AnswerMain"},
+	14:{"一级界面":"activityContentPage"},
+	15:{"一级界面":"ShopTreasureResellItemInfo"},
+	16:{"一级界面":"ShopTreasure"},
+}
+#导表结束

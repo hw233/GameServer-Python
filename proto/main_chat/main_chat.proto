@@ -1,0 +1,111 @@
+package main_chat;//
+option py_generic_services=true;//是否生成python服务
+import "universal/public.proto";
+import "universal/base.proto";
+
+//频道id定义：1.世界 2.门派 3.队伍 31.组队 4.仙盟 41.仙盟公告 5.当前频道 6.系统频道 61.传闻频道 7.战斗频道
+
+//注册角色
+message registerRoleMsg{
+	required int64 epId=1; //连接id
+	required roleInfo roleMsg=2; //角色信息
+}
+
+//角色信息
+message roleInfo{
+	//显示数据
+	required int64 roleId=1; //角色id
+	optional int32 shape=2; //头像
+	optional bytes name=3; //名称
+	optional int32 level=4; //等级
+	repeated int32 flagList=5; //标识(未定义)
+	optional bytes guildName=6; //仙盟名
+	
+	//需要更新频道的属性
+	optional int32 sceneId=10; //场景id
+	optional int32 schoolId=11; //门派id
+	optional int32 teamId=12; //队伍id
+	optional int32 guildId=13; //仙盟id
+	optional int32 warId=14; //战斗id
+	optional int32 guildBan=15; //帮派禁言时间
+	
+	//预判的数据
+	//optional int32 huoli=20; //活力
+
+	//屏蔽属性
+	repeated int64 blackList=25; //黑名单
+}
+
+//消耗
+message costMsg{
+	required int64 roleId=1; //角色id
+	required int32 costVal=2; //消耗值
+}
+
+//系统发送的消息
+message sendMsg{
+	required int32 channelId=1; //频道id(请看上面的频道id定义)
+	optional bytes content=2; //内容
+	optional int32 targetId=3; //门派、队伍、仙盟的id
+	optional int32 roll=4; //滚动控制, 0.不滚动  1.兼滚动  2.只滚动
+	optional int64 senderId=5; //发送者id, 0表示系统
+} 
+
+//一键喊话发送的信息
+message fastChatSendMsg{
+	required int32 channelId=1; //频道id(请看上面的频道id定义)
+	optional bytes content=2; //内容
+	optional int64 roleId=3;//发送者id
+	optional fastChatInfo fastChat=4;//一键喊话信息
+}
+
+//一键喊话信息
+message fastChatInfo{
+	required int32 teamId=1;//队伍id
+	optional int32 count=2;//数量
+	optional int32 task=3;//任务
+	repeated int32 target=4;//目标范围
+
+}
+
+//分享成就
+message shareAchv{
+	required int32 channelId=1; //频道id(请看上面的频道id定义)
+	optional bytes content=2; //内容
+	optional int64 senderId=3; //发送者id, 0表示系统
+	optional int32 targetId=4; //门派、队伍、仙盟的id
+}
+
+//黑名单信息
+message blackInfo{
+	required int64 roleId=1; //角色id
+	required int64 targetId=2;//目标id
+	optional int32 isBlack=3;// 0 删除 1 加入
+}
+
+//主服务 --> 聊天服务
+service main2chat{	
+	rpc rpcHelloChat_iAmMain(public.fake)returns(base.bool_);//测试
+	
+	rpc rpcRegisterRole(main_chat.registerRoleMsg)returns(public.fake); //注册角色(角色登录时向聊天服务发送)
+	rpc rpcUnRegisterRole(base.int64_)returns(public.fake); //注销角色(角色下线时向聊天服务发送)
+	rpc rpcUpdateRole(main_chat.roleInfo)returns(public.fake); //更新角色信息
+	rpc rpcSysSendMsg(main_chat.sendMsg)returns(public.fake); //系统发送的消息
+	rpc rpcHotUpdate(base.bytes_)returns(public.fake); //热更新
+	rpc rpcFastChat(main_chat.fastChatSendMsg)returns(public.fake);//一键喊话
+	rpc rpcModFastChat(main_chat.fastChatInfo)returns(public.fake);//修改一键喊话
+	rpc rpcDelFastChat(base.int32_)returns(public.fake);//删除一键喊话,上传队伍id
+
+	rpc rpcBroadcastAnswerQuick(base.bytes_)returns(public.fake);//答题--抢答题目
+	rpc rpcShareAchv(main_chat.shareAchv)returns(base.bool_); //分享成就
+
+	rpc rpcUpdateBlack(main_chat.blackInfo)returns(public.fake);//更新黑名单
+}
+
+//聊天服务--> 主服务
+service chat2main{
+	rpc rpcHelloMain_iAmChat(base.int32_)returns(base.bool_);//测试
+	rpc rpcCostHuoli(main_chat.costMsg)returns(base.bool_);//世界聊天检测
+}
+
+

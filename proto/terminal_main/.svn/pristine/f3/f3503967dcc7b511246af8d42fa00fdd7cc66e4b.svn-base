@@ -1,0 +1,56 @@
+package act_treasure;	//探宝
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//探宝信息
+message treasureInfo{
+	optional int32 cubeCnt=1;  // 可用投骰子次数
+	optional int32 score=2;  // 探宝积分
+	optional int32 box=3;  // 剩余宝箱
+	optional int32 progress=4;  // 场景进度
+	optional int32 roleCnt=5;  //场景人数
+}
+
+//事件信息
+message eventInfo{
+	optional int32 iPoint=1;  //事件点
+	optional int32 iEventIdx=2;  //事件序号
+}
+
+//场景事件点信息
+message eventPointInfo{
+	repeated eventInfo points=1;  //事件点信息
+}
+
+//排行榜数据
+message rankMsg{
+	optional int32 rankNo = 1; //名次, 0.未上榜
+	optional bytes name = 2; //角色名称
+	optional int32 schoolId = 3; //门派
+	optional int64 point = 4; //积分
+}
+
+message rankAllMsg{
+	repeated rankMsg rankList = 1; //排行榜数据列表
+	optional rankMsg rankMy = 2; //我的排行榜数据
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcTreasureQuit(public.fake)returns(public.fake);  // 离开场景
+	// rpc rpcTreasureRankGet(public.fake)returns(public.fake);  // 查看探宝排行榜，返回rpcTreasureRankInfo，走排行榜协议
+	rpc rpcTreasureCubeThrow(public.fake)returns(public.fake);  // 投骰子，返回rpcTreasureCubeResult
+	rpc rpcTreasureEffectDone(common.int32_)returns(public.fake);  //特效播放完成，1表示股骰子，其他的用到再加
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcTreasureCubeResult(common.int32_)returns(public.fake);  // 投骰子结果
+	rpc rpcTreasureInfo(act_treasure.treasureInfo)returns(public.fake);  // 探宝信息
+	// rpc rpcTreasureRankInfo(act_treasure.rankAllMsg)returns(public.fake);  // 排行榜信息，走排行榜那套协议
+	rpc rpcTreasureStatus(common.int32_)returns(public.fake);  //探宝状态 1.开始 2结束
+	rpc rpcTreasureEventPoints(act_treasure.eventPointInfo)returns(public.fake);  //探宝事件点信息
+}

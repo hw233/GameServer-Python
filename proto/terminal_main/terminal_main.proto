@@ -1,0 +1,150 @@
+//游戏服务器与游戏客户端的服务
+package terminal_main;
+
+option py_generic_services=true;//是否生成python服务
+
+import "universal/public.proto";
+import "common.proto";
+import "scene.proto";//场景
+//import "account.proto";//账号
+
+import "role.proto";//角色
+//import "chatRoom.proto";//聊天室(频道聊天)
+import "im.proto";//即时通讯
+
+import "props.proto";//道具
+import "auction.proto";//拍卖
+
+import "task.proto";//任务系统
+
+import "exchange.proto";//交易所
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	//拍卖场
+	rpc rpcAuctionUp(auction.sell)returns(common.bool_);//上架物品
+	rpc rpcAuctionDown(common.int64_)returns(common.bool_);//下架物品，参数int64_是物品ID
+	rpc rpcAuctionBuy(common.int64_)returns(common.bool_);//购买物品
+	rpc rpcAuctionLookMy(public.fake)returns(public.fake);//查看自己上架物品,回复 rpcAuctionMyGoodsList
+	rpc rpcAuctionLookOnly(common.int64_)returns(public.fake);//查看自己拍卖物品信息(无对比)
+	rpc rpcAuctionLook(common.int64_)returns(public.fake);//查看某个物品信息
+	rpc rpcAuctionLookByType(auction.reqGoodsList)returns(public.fake);//查看某类型物品行情,回复 rpcAuctionGoodsList
+	rpc rpcAuctionSearch(auction.searchReq)returns(public.fake);//查看某类型物品行情,回复 rpcAuctionGoodsList
+	//钻石交易所
+	rpc rpcBuyDiamond(exchange.order)returns(common.bool_);//购买钻石
+	rpc rpcSellDiamond(exchange.order)returns(common.bool_);//出售钻石
+	rpc rpcCancelOrder(common.int32_)returns(common.bool_);//撤单(撤买单,撤卖单)
+	rpc rpcLookMyOrder(public.fake)returns(exchange.myOrder);//查看我的挂单
+	rpc rpcLookQuotation(public.fake)returns(public.fake);//查看钻石行情,返回 rpcQuotation
+
+	rpc rpcDrawGiftBox(common.int32Pair)returns(common.bool_);	//领取关卡宝箱(关卡组编号,宝箱位置编号)
+
+  	
+  	rpc rpcActivateScene(public.fake)returns(public.fake);	//卡机接活
+
+	//频道聊天(聊天室)
+	//rpc rpcChat(chatRoom.chatUplink)returns(public.fake);//	
+	rpc rpcChatProps(public.fake)returns(public.fake);//请求物品列表
+	rpc rpcInstruction(common.bytes_)returns(public.fake);//指令
+	//rpc rpcSysChat(chatRoom.chatSysDown)returns(public.fake);//临时测试系统消息用
+	
+	//好友即时通信系统
+	rpc rpcAddFriend(common.int64_)returns(common.bool_);//增加好友
+	rpc rpcDelFriend(common.int64_)returns(public.fake);//删除好友
+	rpc rpcSendImMsg(im.chatReq)returns(common.bool_);//发送消息(上行)
+	rpc rpcFriMsg(common.int64_)returns(im.roleReq);//请求私聊好友信息(上行)
+	rpc rpcFetchImMsg(common.int64_)returns(public.fake);//请求好友聊天消息
+	rpc rpcFetchSysMsg(public.fake)returns(im.sysMsg);//请求系统消息
+	rpc rpcPraise(common.int32_)returns(public.fake);//点赞
+	rpc rpcGetPraise(common.int32_)returns(public.fake);//收赞
+
+	rpc rpcFreindEquip(common.uint32uint64)returns(public.fake);//请求好友装备信息
+	rpc rpcSurroundPlayer(public.fake)returns(public.fake);//请求周围玩家
+	rpc rpcRecentContact(public.fake)returns(public.fake);//请求最近联系人列表
+	rpc rpcResumeEquipReq(common.int64_)returns(public.fake);//请求角色装备简要
+	rpc rpcResumeAttrReq(common.int64_)returns(public.fake);//请求角色属性简要
+	rpc rpcSearchPlayer(common.bytes_)returns(public.fake);//用昵称查找玩家
+	rpc rpcSetSign(common.bytes_)returns(public.fake);//设置个性签名
+	rpc rpcDragBlack(common.int64_)returns(public.fake);//拉黑名单
+	rpc rpcRemoveBlack(common.int64_)returns(public.fake);//解除黑名单
+	rpc rpcChatUiInfo(common.int64_)returns(public.fake);//请求聊天界面角色信息
+	rpc rpcFightCmp(common.int64_)returns(im.fightCmp);//请求战力对比信息
+	rpc rpcFriendBrief(public.fake)returns(im.roleList);//请求好友的简简要信息(ID,战力)
+
+	//杂项
+	rpc rpcServerTime(common.int64_)returns(common.int64Pair);//ntp网络对时(打击外挂会用到),clock offset=t2-(t1+t3)/2
+	//1.把客户端当前时间戳发到服务器,记为t1
+	//2.服务器取得当前时间戳(记为t2),和客户端第1步发上来的时间戳(t1)一起发下去
+	//3.客户端收到包时的时间戳记为t3
+	//4.t2-(t1+t3)/2,正值,客户端比服务器比慢了多少,负值,客户端比服务器快了多少
+
+	//查看排行榜
+	//任务系统
+	
+	//测试用
+	rpc rpcPos(public.fake)returns(role.roleAttr);//请求当前坐标
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+
+	//物品交易所
+	rpc rpcAuctionGoodsList(auction.goodsList)returns(public.fake);//物品行情列表
+	rpc rpcAuctionMyGoodsList(auction.myGoodsList)returns(public.fake);//我的上架物品信息
+	//钻石交易所
+	rpc rpcQuotation(exchange.quotation)returns(public.fake);//钻石行情信息
+	rpc rpcOpenExchangeUI(public.fake)returns(public.fake);//打开交易ui
+
+	//rpc rpcShutdown(common.bytes_)returns(public.fake);//客户端收到此协议请弹框并shutdown网络连接.(暂时不做,讨论后再做)
+
+	//通用ui
+	rpc rpcSellBox(common.int32tre)returns(common.int32Pair);//出售数量框
+	rpc rpcSelectBox(common.selectBoxReq)returns(common.int32_);//对端有回复的(计数从1开始)
+	rpc rpcModalDialog(common.modalDialog)returns(public.fake);//对端没有回复的
+	rpc rpcTips(common.bytes_)returns(public.fake);//弹出,渐隐式提示
+	rpc rpcMessage(common.bytes_)returns(public.fake);//信息提示，显示在系统频道
+	rpc rpcSysPrompt(common.bytes_)returns(public.fake);//系统提示,显示在系统频道窗口,单独发给某几个玩家的
+	//rpc rpcSysMsg(chatRoom.chatUplink)returns(public.fake);//发在某个频道内的系统提示,给部分玩家看的,如公会、队伍
+	//rpc rpcAnnounce(chatRoom.chatSysDown)returns(public.fake);//系统公告,显示在系统频道窗口,滚动播放
+	//rpc rpcRollAnnounce(common.bytes_)returns(public.fake);//系统滚动公告,同时也要显示在系统频道窗口
+	rpc rpcConfirmBox(common.confirmationBoxReq)returns(common.int32_);//确认,取消框,对端有回复的(计数从0开始)
+	rpc rpcPushMsgBall(common.msgBall)returns(common.int32_);//消息推送,健荣起名叫"消息球"
+	//rpc rpcPopPetUI(common.popUIReq)returns(common.popUIRes);//弹出上交宠物界面
+	rpc rpcPopPropsUI(common.popUIReq)returns(common.popUIRes);//弹出上交物品界面
+	rpc rpcNpcSay(common.npcSayReq)returns(public.fake);//npc对话框
+	rpc rpcReloginMsg(common.reloginMsg)returns(public.fake);//重新登录提示
+	rpc rpcOpenUIPanel(common.uiPanelMsg)returns(public.fake);//打开界面
+
+	//可能还需要飘窗提示
+
+
+	//角性属性
+	rpc rpcAvatarAttrInit(role.roleAttr)returns(public.fake);//主角属性初始化
+	rpc rpcAvatarAttrChange(role.roleAttr)returns(public.fake);//主角属性变化，只发主角
+	
+	//聊天室频道聊天
+	//rpc rpcChat(chatRoom.chatDownlink)returns(public.fake);//
+	
+	//好友相关
+	rpc rpcChatUiInfoDown(role.roleAttr)returns(public.fake);//聊天界面信息下发
+	rpc rpcFriendAttr(role.roleAttr)returns(public.fake);//好友属性
+	rpc rpcFriendEquip(public.fake)returns(public.fake);//好友已穿戴装备
+	rpc rpcFriendList(im.roleList)returns(public.fake);//下发好友列表
+	rpc rpcFriendChange(im.roleList)returns(public.fake);//好友变化
+	rpc rpcBlackChange(im.roleList)returns(public.fake);//黑名单变化
+	rpc rpcOffline(common.int64_)returns(public.fake);//广播好友下线(客户端图标要灰掉)
+	rpc rpcOnline(common.int64_)returns(public.fake);//广播好友上线(客户端图标要点亮)
+	rpc rpcFriendLvlUp(common.uint32uint64)returns(public.fake);//广播好友升级
+	rpc rpcSign(common.bytes_)returns(public.fake);//个性签名发给主角(主角上线时,改变签名时),当改变签名同时也要广播给其他玩家
+	rpc rpcImMsgArrival(im.chatReq)returns(public.fake);//有好友聊天信息到达
+	rpc rpcSysMsgArrival(public.fake)returns(public.fake);//有系统信息到达
+	
+	rpc rpcSendImMsg(im.chatMsgRelay)returns(public.fake);//转发好友消息给接收者(下行)
+	rpc rpcSendSysMsg(im.sysMsg)returns(public.fake);//下发系统消息给接收者
+
+	//实体特效
+	rpc rpcEntityEfft(public.fake)returns(public.fake);	//实体特效
+
+
+ }

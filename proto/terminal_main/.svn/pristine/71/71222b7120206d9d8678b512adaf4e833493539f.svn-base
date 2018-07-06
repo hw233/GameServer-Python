@@ -1,0 +1,182 @@
+package answer;	//答题服务
+option py_generic_services=true;
+import "universal/public.proto";
+import "common.proto";
+
+
+//抢答问题
+message quickProblem{
+	required int32 iProblemNo=1;//问题编号
+	required int32 duration=2;//剩余多少时间
+}
+
+//提交/抢答答案
+message quickResult{
+	required bytes sResult=1;//答案
+}
+
+//每日问题
+message dayProblem{
+	required int32 iProblemNo=1;//问题编号
+	optional int32 iCompleteCnt=2;//已答题数
+	optional int32 iRightCnt=3;//正确题数
+	optional int32 iGuildHelp=4;//帮派求助已使用次数
+}
+
+//每日答案
+message dayResult{
+	required bytes sResult=1;//答案
+}
+
+//探宝问题
+message treasureProblem{
+	required int32 iProblemNo=1;//问题编号
+}
+
+//探宝答案
+message treasureResult{
+	required bytes sResult=1;//答案
+}
+
+//任务链问题
+message ringProblem{
+	required int32 iProblemNo=1;//问题编号
+	optional int32 iGuildHelp=2;//帮派求助已使用次数
+}
+
+//任务链答案
+message ringResult{
+	required bytes sResult=1;//答案
+}
+
+//额外奖励
+message extraRewardItem{
+	required int64 propsNo=1; //物品编号
+	required int32 count=2; //数量
+}
+message extraReward{
+	repeated extraRewardItem extraRewardList=1; //物品编号
+}
+
+//求助问题
+message helpProblem{
+	required int32 iProblemNo=1;//问题编号
+	required uint64 iTargetRoleId=4;//目标角色ID
+}
+
+//求助回复
+message helpResult{
+	required uint64 iTargetRoleId=1;//目标角色ID
+	required int32 iProblemNo=2;//问题编号
+	required bytes sResult=3;//选项
+}
+
+////////////////////
+//初试
+//科目类型选择
+message selectFirstExam{
+	required int32 iSelect=1;//类型
+}
+
+//初试问题
+message firstExamQuestion{
+	required int32 iQuestionNo=1;//问题编号
+	required int32 iProgress=2;//答题进度
+	required int32 iTime=3;//初试耗时
+}
+
+//初试答案
+message firstExamResult{
+	required bytes sResult=1;//答案
+}
+
+//使用道具
+message firstExamUseProps{
+	required uint64 iPropsId=1;//物品id
+}
+
+message finalExamQuestion{
+	required int32 iQuestionNo=1;//问题编号
+	required int32 iProgress=2;//进度
+	required int32 iTime=3;//耗时
+}
+
+message betRoleInfo{
+	required int32 iRank=1;//序号
+	required bytes sName=2;//玩家名字
+	required bytes sGuildName=3;//帮派名字
+	required int32 iTime=4;//天问初试耗时
+}
+
+//献花主界面信息
+message betFlowerMain{
+	required int32 iMaxPage=1;//最大页数
+	repeated betRoleInfo lBetRoleInfo=2;//排行榜数据
+}
+
+message betFlower{
+	required uint64 iTargetRoleId=1;//目标角色ID
+	required int32 iBetCnt=2;//献花数量
+}
+
+message betFlowerInfoRes{
+	required uint64 iTargetRoleId=1;//目标角色ID
+	optional bytes sName=2;//角色名称
+	optional int32 iLevel=3;//等级
+	optional int32 iSchool=4;//职业
+	optional int32 iTotalBetCnt=5;//被献花数量
+	optional int32 iBetCnt=6;//你已献花数量
+	optional int32 iGender=7;//性别
+}
+
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcAnswerQuick(answer.quickResult)returns(public.fake);//提交抢答答案
+	rpc rpcAnswerDay(answer.dayResult)returns(public.fake);//提交每日答案
+	rpc rpcAnswerGuildHelp(public.fake)returns(public.fake);//帮派求助
+	rpc rpcAnswerExtraReward(common.int32_)returns(public.fake);//额外奖励
+	rpc rpcAnswerHelpResult(answer.helpResult)returns(public.fake);//回复求助问题
+	rpc rpcAnswerTreasure(answer.treasureResult)returns(public.fake);//提交探宝答案
+	rpc rpcAnswerRing(answer.ringResult)returns(public.fake);//任务链答案
+	rpc rpcAnswerRingGuildHelp(public.fake)returns(public.fake);//任务链答题求助
+	rpc rpcAnswerRingHelpResult(answer.helpResult)returns(public.fake);//回复任务链求助问题
+
+	rpc rpcSelectFirstExam(answer.selectFirstExam)returns(public.fake);//科目类型选择
+	rpc rpcAnswerFirstExam(common.bytes_)returns(public.fake);//提交初试答案
+	rpc rpcFirstExamClose(public.fake)returns(public.fake);//关闭初试答题界面
+
+	rpc rpcAnswerFinalExam(common.bytes_)returns(public.fake);//提交殿试答案
+
+	rpc rpcBetFlowerMainReq(common.int32_)returns(public.fake);// 参数：页数 请求献花主界面，返回rpcBetFlowerMain
+	rpc rpcBetFlowerInfoReq(common.int32_)returns(public.fake);// 参数：排名 献花操作界面信息，返回rpcBetFlowerInfoRes
+	rpc rpcBetFlower(answer.betFlower)returns(public.fake);//投注献花
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcAnswerQuickProblem(answer.quickProblem)returns(public.fake);//抢答问题
+	rpc rpcAnswerDayProblem(answer.dayProblem)returns(public.fake);//每日问题
+	rpc rpcAnswerShowTurn(public.fake)returns(public.fake);//打开额外奖励翻牌界面
+	rpc rpcAnswerShowExtra(answer.extraReward)returns(public.fake);//显示额外奖励
+	rpc rpcGuildHelpHyperlink(answer.helpProblem)returns(public.fake);//求助问题
+	rpc rpcUpdateGuildHelp(common.int32_)returns(public.fake);//更新帮派求助已使用次数
+	rpc rpcAnswerDayComplete(public.fake)returns(public.fake);//已答完每日问题
+	rpc rpcAnswerTreasureProblem(answer.treasureProblem)returns(public.fake);//探宝问题
+	rpc rpcAnswerRingProblem(answer.ringProblem)returns(public.fake);//任务链问题
+	rpc rpcRingGuildHelpHyperlink(answer.helpProblem)returns(public.fake);//任务链求助问题
+
+	rpc rpcOpenFirstExamRule(public.fake)returns(public.fake);//弹出初试规则界面
+	rpc rpcOpenSelectFirstExam(public.fake)returns(public.fake);//科目类型选择界面
+	rpc rpcFirstExamQuestion(answer.firstExamQuestion)returns(public.fake);//初试问题
+	rpc rpcFirstExamRemoveOption(public.fake)returns(public.fake);//随机使一个错误选项变灰不可选
+	rpc rpcFirstExamComplete(common.int32_)returns(public.fake);//已答完初试问题
+	
+	rpc rpcFinalExamQuestion(answer.finalExamQuestion)returns(public.fake);//殿试问题
+	rpc rpcFinalExamComplete(common.int32_)returns(public.fake);//已答完殿试问题
+
+	rpc rpcBetFlowerMain(answer.betFlowerMain)returns(public.fake);//献花主界面
+	rpc rpcBetFlowerInfoRes(answer.betFlowerInfoRes)returns(public.fake);//献花操作界面信息
+	rpc rpcBetFlowerInfoChange(answer.betFlowerInfoRes)returns(public.fake);//刷新献花操作界面信息
+}

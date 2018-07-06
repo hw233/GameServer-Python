@@ -1,0 +1,149 @@
+//问答相关
+package qanda;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//输入框请求
+message inputBoxReq{
+	required int32 validId = 1; //验证id，用于服务端验证
+	optional bytes title = 2; //标题
+	optional bytes content = 3; //内容
+	optional int32 limitType = 4; //输入字符的类型限制，0.无限制 1.整数(0~9)
+	optional int32 limitLength = 5; //长度限制，0.无限制
+	
+}
+
+//输入框回应
+message inputBoxRes{
+	required int32 validId = 1; //验证id，用于服务端验证
+	required bytes responseVal = 2; //回应值
+}
+
+
+//寻路请求
+message walkReq{
+	required int32 validId = 1; //验证id，用于服务端验证
+	optional int32 sceneId = 2; //场景id
+	optional int32 x = 3; //x坐标
+	optional int32 y = 4; //y坐标
+	optional int32 isResponse = 5; //是否需要回应, 0.不需要回应  1.需要回应
+}
+
+//寻路回应
+message walkRes{
+	required int32 validId = 1; //验证id，用于服务端验证
+}
+
+//选择框请求
+message selectBoxReq{
+	required int32 validId = 1; //验证id，用于服务端验证
+	optional bytes title = 2; //标题、npc名字
+	optional bytes content = 3; //内容
+	optional int32 shape = 4; //npc半身相资源
+	optional int64 npcId = 5; //固定npc的id，为0时表示临时npc(如任务npc、活动npc)
+}
+
+//选择框回应
+message selectBoxRes{
+	required int32 validId = 1; //验证id，用于服务端验证
+	required int32 responseVal = 2; //回应值, 从1开始
+}
+
+//确认框请求
+message confirmBoxReq{
+	required int32 validId = 1; //验证id，用于服务端验证
+	optional bytes content = 2; //内容
+}
+
+//确认框回应
+message confirmBoxRes{
+	required int32 validId = 1; //验证id，用于服务端验证
+	required bool responseVal = 2; //回应值, true.确定 false.取消
+}
+
+message member{
+	required int64 roleId = 1; //角色id
+	optional int32 shape = 2; //造型
+	optional bytes name =3 ; //角色名
+	optional int32 level = 4; //等级
+	optional int32 school = 5; //职业
+	optional int32 state = 6; //状态，0.正常  1.暂离  2.离线
+	optional bool confirm = 7; //回应值, true
+}
+
+message confirmTeamBoxReq{
+	optional bytes title = 1; //标题
+	optional bytes content = 2; //内容
+	optional int64 timeOut = 3; //倒数时间(秒)
+	optional int64 leader = 4; //队长
+	repeated member memberList = 5; //队员列表
+	
+}
+
+//确认框回应
+message confirmTeamBoxRes{
+	required int32 teamId = 1; //队伍id
+	required bool responseVal = 2; //回应值, true
+}
+
+//上交界面请求
+message popReq{
+	required int32 validId = 1; //验证id，用于服务端验证
+	optional bytes title = 2; //标题
+	repeated int64 idList = 3;  //物品或宠物的id
+}
+
+//上交的每项物品或宠物
+message itemMsg{
+	required int64 id = 1; //物品或宠物的id
+	required int32 amount = 2; //数量
+}
+
+//上交界面回应
+message popRes{
+	required int32 validId = 1; //验证id，用于服务端验证
+	repeated itemMsg itemList = 2; //上交的物品或宠物列表
+}
+
+//进度条请求
+message progressBarReq{
+	required int32 validId = 1; //验证id，用于服务端验证
+	required bytes title = 2; //标题
+	required int32 icon = 3; // 图标
+	required int32 time = 4; //时间(单位:秒)
+	required bool brk = 5; // 是否可打断, true.可打断 false.不可打断
+}
+
+//进度条回应
+message progressBarRes{
+	required int32 validId = 1; //验证id，用于服务端验证
+	optional bool responseVal = 2; //回应值, true.完成 false.中断
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcInputBoxResponse(qanda.inputBoxRes)returns(public.fake); //输入框回应
+	rpc rpcWalkToPosResponse(qanda.walkRes)returns(public.fake); //寻路回应
+	rpc rpcSelectBoxResponse(qanda.selectBoxRes)returns(public.fake); //选择框回应
+	rpc rpcConfirmBoxResponse(qanda.confirmBoxRes)returns(public.fake); //确认框回应
+	rpc rpcTeamConfirmBoxResponse(qanda.confirmTeamBoxRes)returns(public.fake); //队伍确认框回应
+	rpc rpcPopPropsResponse(qanda.popRes)returns(public.fake);//上交物品回应
+	rpc rpcProgressBarResponse(qanda.progressBarRes)returns(public.fake);//进度条回应，0.中断 1.完成
+}
+
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcInputBoxRequest(qanda.inputBoxReq)returns(public.fake); //输入框请求
+	rpc rpcWalkToPosRequest(qanda.walkReq)returns(public.fake); //寻路请求
+	rpc rpcSelectBoxRequest(qanda.selectBoxReq)returns(public.fake);//选择框请求
+	rpc rpcConfirmBoxRequest(qanda.confirmBoxReq)returns(public.fake);//确认框请求
+	rpc rpcTeamConfirmBoxRequest(qanda.confirmTeamBoxReq)returns(public.fake);//队伍确认框请求
+	rpc rpcTeamConfirmBoxChange(common.int64_)returns(public.fake);//队伍确认框玩家确认
+	rpc rpcTeamConfirmBoxResult(public.fake)returns(public.fake);//队伍确认框结果
+	rpc rpcPopPropsRequest(qanda.popReq)returns(public.fake);//上交物品请求
+	rpc rpcProgressBarRequest(qanda.progressBarReq)returns(public.fake);//进度条请求
+}

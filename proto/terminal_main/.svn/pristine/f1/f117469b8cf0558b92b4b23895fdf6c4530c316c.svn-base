@@ -1,0 +1,40 @@
+package act_star;	//杀星服务
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//抽取信息
+message selectInfo{
+	optional int32 iMonsterId = 1;//怪物id
+	optional int32 iTime = 2;//倒计时(秒)
+	optional int32 iAmount = 3;//参与队伍数量
+}
+
+//人物信息
+message roleInfo{
+	required int64 iRoleId = 1;//人物id
+	optional int32 iLevel = 2;//人物等级
+	optional bytes sName = 3;//名字
+	optional int32 iSchool = 4;//职业
+	optional int32 iShape = 5;//造型
+}
+
+//人物列表
+message roleList{
+	repeated roleInfo roleList=1;//选中的队员信息，第一个是队长
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcStarSelectCancle(act_star.selectInfo)returns(public.fake);//取消怪物抽取，发送怪物id
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcStarSelectSend(act_star.selectInfo)returns(public.fake);//发送抽取界面
+	rpc rpcStarSelectMod(act_star.selectInfo)returns(public.fake);//抽取界面修改(暂时用于改变参与队伍数量)
+	rpc rpcStarSelectResult(act_star.roleList)returns(public.fake);//抽取结果
+	rpc rpcStarSelectClose(public.fake)returns(public.fake);//关闭抽取界面
+}

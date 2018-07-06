@@ -1,0 +1,16 @@
+con	1.82
+mag	1.82
+str	1.82
+res	1.82
+spi	1.82
+dex	1.82
+hpMax	0.23
+mpMax	0
+phyDam	0.91
+magDam	0.91
+phyDef	0.73
+magDef	0.73
+spe	0.32
+cure	1.82
+sealHit	0.91
+reSealHit	0.23

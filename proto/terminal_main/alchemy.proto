@@ -1,0 +1,56 @@
+//炼丹相关
+package alchemy;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//炼丹物品
+message alchemyProps{
+	required int32 propsNo=1;//物品信息
+	optional int32 time=2;//剩余时间/s.0是没有或者可领取
+	optional int32 getCnt=3;//可以领取的数量
+	optional int32 maxCnt=4;//最大数量
+}
+
+//炼丹信息
+message alchemyInfo{
+	required int32 anima=1;//灵气
+	repeated alchemyProps propsList=2;//物品列表
+}
+
+//炼化物品
+message artificeProps{
+	required int64 propsId=1;//物品id
+	required int32 stack=2;//物品数量
+}
+
+//炼化信息
+message artificeInfo{
+	repeated artificeProps propsList=1;//物品列表
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	//炼丹相关
+	rpc rpcAlchemyOpen(public.fake)returns(public.fake); //打开炼丹界面
+	rpc rpcAlchemyClick(alchemy.alchemyProps)returns(public.fake); //点击物品
+	rpc rpcAlchemyGet(public.fake)returns(public.fake); //一键领取
+	rpc rpcAlchemyOneKey(public.fake)returns(public.fake); //一键炼丹
+
+	//炼化相关的
+	rpc rpcArtificeOpen(public.fake)returns(public.fake); //打开炼化界面
+	rpc rpcArtificeProps(alchemy.artificeInfo)returns(public.fake); //炼化物品
+}
+
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcAlchemyInfo(alchemy.alchemyInfo)returns(public.fake); //发送炼丹信息
+	rpc rpcAlchemyMod(alchemy.alchemyProps)returns(public.fake); //修改炼化信息
+	rpc rpcAlchemyDel(alchemy.alchemyProps)returns(public.fake); //删除炼化信息
+
+	rpc rpcArtificeInfo(common.int32_)returns(public.fake); //发送炼化信息(灵气)
+
+	rpc rpcAnimaMod(common.int32_)returns(public.fake); //灵气修改
+}

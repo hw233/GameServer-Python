@@ -1,0 +1,9 @@
+option py_generic_services=true;//是否生成python服务
+
+package connection;
+
+message roleInfo{
+	required int32 iZoneNo=1;//区号
+	required int64 iRoleId=2;//角色id
+	required int32 iGender=3;//性别
+}

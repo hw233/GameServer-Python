@@ -1,0 +1,102 @@
+package account;	//登录服务
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+
+//账号登录请求
+message accountLoginReq{
+	required bytes	sAccount=1;//账号
+	required bytes	sUserSource=2;//用户来源,决定到哪里去验证账号
+	required OStype iOStype=3[default=ANDROID];//#系统平台,ios或者android
+	required bytes	sLoginAppId=5;//客户端标识(子渠道)
+	required bytes	sRegisterAppId=6;//注册渠道(注册战法牧账号时所用的客户端)
+	optional bytes	sToken=4;//令牌
+
+	enum OStype {
+		WIN_PHONE=1;
+		ANDROID=2;
+		IOS=4;
+	}
+}
+
+//角色信息
+message roleInfo{
+	required uint64	iRoleId=1;
+	optional bytes	sRoleName=2;
+	optional uint32	iRoleLevel=3;
+	optional int32 iRoleSchool=4;
+}
+
+//登录界面的角色列表
+message roleList{
+	repeated roleInfo roles=1;
+}
+
+
+//创建角色请求
+message createRoleReq{
+	required int32 iSchool=2;//角色职业
+	optional int32 iShape=3;//外形
+}
+
+//角色改名请求
+message setRoleName{
+	required int64 iRoleId=1;//角色ID
+	required bytes	sName=2;//角色名字
+}
+
+message test{
+	optional double d=1;//double
+	optional float f=2;//float
+	optional int32 i32=3;//int32
+	optional int64 i64=4;//int64
+	optional uint32 u32=5;//uint32
+	optional uint64 u64=6;//uint64
+	optional sint32 si32=7;//sint32
+	optional sint64 si64=8;//sint64
+	optional fixed32 f32=9;//fixed32
+	optional fixed64 f64=10;//fixed64
+	optional sfixed32 sf32=11;//sfixed32
+	optional sfixed64 sf64=12;//sfixed64
+	optional bool b=13;//bool
+	optional string s=14;//string
+	optional bytes by=15;//bytes
+
+};
+
+//机器人信息
+message robotMsg{
+	required bytes accountName=1; //账号
+}
+message accountLoginResp{
+	required bool bSuccessed=1; //登录
+	optional int64 timeStamp=2; //时间戳
+}
+
+//上行(客户端主动发起)
+service terminal2main{//登录注册账号相关
+
+	rpc rpcAccountLogin(account.accountLoginReq)returns(account.accountLoginResp);//账号登录,回复rpcRoleList
+	rpc rpcCreateRole(account.createRoleReq)returns(common.bool_);//创建角色
+	rpc rpcDelRole(common.int64_)returns(common.bool_);//删除角色
+	rpc rpcSwitchRole(public.fake)returns(public.fake);//切换角色
+	rpc rpcSetRoleName(common.bytes_)returns(common.bool_);//设置玩家名字
+	rpc rpcForceRemoveRole(public.fake)returns(common.int32_);//强制移除角色,测试机器人用
+	rpc rpcReconnect(common.int64_)returns(common.bool_);//断线重连	
+	rpc rpcAccountLogOut(public.fake)returns(public.fake);//退出账号
+	rpc rpcRoleLogin(common.int64_)returns(public.fake);//角色登录
+	rpc rpcRandomName(public.fake)returns(public.fake);//随机名字
+	rpc rpcRobotLogin(account.robotMsg)returns(public.fake);//机器人登录
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcRoleList(account.roleList)returns(public.fake);//下发角色列表
+	rpc rpcSendName(common.bytes_)returns(public.fake);//下发随机角色名
+	
+	rpc rpcTest(account.test)returns(public.fake); //测试
+	//rpc rpcRoleLoginResult(public.fake)returns(public.fake);//下发角色登录状态(表示登录成功)	
+}

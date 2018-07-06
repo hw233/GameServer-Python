@@ -1,0 +1,18 @@
+package act_instance;	//挂机活动服务
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcActInstanceEnter(common.int32_)returns(public.fake);//进入副本
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	
+}

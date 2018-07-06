@@ -1,0 +1,27 @@
+option py_generic_services=true;//是否生成python服务
+import "universal/public.proto";
+import "universal/base.proto";
+import "connection.proto";
+
+//网关服务 --> 功能服务
+service gate2backEnd{	
+	rpc rpcGameClientConnect(connection.connectionInfo)returns(base.bool_);//有一个新的客户端连接上来了.	
+	rpc rpcGameClientDisConnected(base.int32_)returns(public.fake);//有一个客户端连接断开了
+	rpc rpcOtherBackEndLink2gate(base.int32_)returns(public.fake);//有其他backEnd连接到网关
+	rpc rpcRecoverySceneService(public.fake)returns(public.fake);//能知主服恢复场景服
+	rpc rpcSwitchSceneResponse(base.int64_)returns(public.fake);//回复主服收到切换场景包
+}
+
+//功能服务--> 网关服务
+service backEnd2gate{
+	//通知网关断开某个客户端连接
+	//各后端直接调用玩家的ep.shutdown()就可以了,并不需要用gate的ep调用rpcShutdownGameClient
+	rpc rpcShutdownGameClient(base.int32_)returns(base.bool_);
+
+	rpc rpcHelloGate(public.fake)returns(base.bool_);//测试用
+	
+	rpc rpcBackEndReport(base.int32_)returns(base.bool_);//功能服务向网关服务报到,返回其他已经连接上的backEnd
+
+}
+
+

@@ -1,0 +1,107 @@
+syntax = "proto2";
+option py_generic_services=true;//是否生成python服务
+
+package backEnd_center;
+
+import "universal/public.proto";
+import "universal/base.proto";
+
+//玩家摘要数据
+message resumeInfo{
+	required int32 roleId=1;//玩家id
+	optional int32 level=2;//等级
+	optional int32 shape=3;//造型
+	optional int32 school=4;//职业
+	optional bytes name=5;//名字
+	optional bytes signature=6;//个性签名
+	optional bytes serviceName=7;//服务器名字
+	optional int32 offlineTime=8;//离线时间
+	optional bytes guildName=9;//帮派名字
+	optional int32 guildId=10;//帮派ID
+	repeated int32 shapeParts=11; // 造型部位, [头发,身躯,衣服,武器,影子,帽子]
+	repeated int32 colors=12; // 染色, [头发,身躯,衣服,武器,影子,帽子]
+}
+
+//玩家摘要数据
+message resumeList{
+	repeated resumeInfo resumeList=1;//摘要数据列表
+	optional int64 iRoleId=2;//角色id
+}
+
+//请求名字信息
+message reqNameInfo{
+	required int32 iGender=1;//性别
+	required int64 iRoleId=2;//角色id
+}
+
+//确认信息
+message confirmInfo{
+	required int64 iRoleId=1;//角色id
+}
+
+//角色改名
+message updateInfo{
+	optional int64 iRoleId=1;//角色id
+	optional bytes sName=2;//角色名字
+	optional bytes sOld=3;//角色原来的名字
+}
+
+//后端类型
+message backEndInfo{
+	required int32 iZoneNo=1;//区号
+	required int32 iBackEndType=2;//后端类型
+	required bytes sZoneName=3;//服务器名字
+	required int32 iPageNo=4;//分页（大区）号
+}
+
+//聊天信息
+message chatInfo{
+	required int64 iRoleId=1;//好友id(目标) , 51：系统 52：精灵
+	optional int32 iSendTime=2;//发送时间戳
+	optional bytes sContent=3; //内容
+	optional int32 iAudio=4;//是否语音 0:不是 1：是
+	optional int32 iAudioLen=5;//语音长度(秒为单位)
+	optional int32 iAudioIdx=6;//语音序号
+	optional int64 iSenderId=7;//发送者id 51：系统 52：精灵
+}
+
+//渐隐式提示
+message tipsInfo{
+	required int64 iRoleId=1;//角色id
+	required bytes sContent=2;//内容
+}
+
+//中心服务 --> 主服务
+service center2backEnd{	
+	rpc rpcTest2(public.fake)returns(public.fake);
+	rpc rpcResumeListSend(backEnd_center.resumeList)returns(public.fake); //发送玩家摘要数据
+
+	rpc rpcChatGet(backEnd_center.chatInfo)returns(public.fake); //聊天请求
+	rpc rpcTipsCenter(backEnd_center.tipsInfo)returns(public.fake); //渐隐式提示
+
+	rpc rpcNearbySend(backEnd_center.resumeList)returns(public.fake);//附近玩家发送
+}
+
+//主服务--> 中心服务
+service backEnd2center{
+	rpc rpcTest1(public.fake)returns(public.fake);
+	rpc rpcGetName(backEnd_center.reqNameInfo)returns(base.bytes_);//请求名字
+	rpc rpcConfirmName(backEnd_center.confirmInfo)returns(public.fake);//确认名字
+	rpc rpcHotUpdate2center(base.bytes_)returns(public.fake);//热更新
+	rpc rpcUpdateName(backEnd_center.updateInfo)returns(base.bool_);//更新名字(玩家更新名字)
+
+	rpc rpcBackEndReport(backEnd_center.backEndInfo)returns(base.bool_);//功能服务向中心服务报到
+
+	rpc rpcUpdateResume(backEnd_center.resumeInfo)returns(public.fake); //更新摘要信息
+
+	rpc rpcResumeListReq(backEnd_center.resumeList)returns(public.fake); //请求玩家摘要数据
+
+	rpc rpcResumeReq(backEnd_center.resumeInfo)returns(backEnd_center.resumeInfo); //好友检查请求
+
+	rpc rpcChatSend(backEnd_center.chatInfo)returns(public.fake); //聊天请求
+
+	rpc rpcNearbyReq(backEnd_center.resumeList)returns(public.fake);//附近玩家请求
+
+	rpc rpcDelAudio(base.int32_)returns(public.fake);//删除语音
+
+}

@@ -1,0 +1,45 @@
+//邮件服务
+package mail;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+import "props.proto";
+
+//邮件信息
+message mailMsg{
+	required int32 mailId = 1; //邮件id
+	optional int32 type = 2; //邮件类型，1.交易  2.仙盟  3.系统
+	optional bytes title = 3; //标题
+	optional bytes content = 4; //内容
+	optional bytes senderName = 5; //发送人
+	optional int32 sendTime = 6; //发送时间
+	optional int32 expiredTime = 7; //过期时间，0表示永不过期
+	repeated props.packageItemMsg propsList = 8; //附件物品
+	optional bool isReaded = 9; //是否已读
+	optional bool isTaken = 10; //是否已收取物品
+	optional bool isProps = 11; //是否有附件物品
+}
+
+//全部邮件列表
+message mailAllMsg{
+	repeated mailMsg mailList = 1;
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcMailReadDetail(mail.mailMsg)returns(public.fake); //读取邮件详情(发送mailId)
+	rpc rpcMailDelete(mail.mailMsg)returns(public.fake); //删除邮件(发送mailId)
+	rpc rpcMailDeleteOneKey(public.fake)returns(public.fake); //一键删除邮件
+	rpc rpcMailTakeProps(mail.mailMsg)returns(public.fake); //收取邮件附件物品(发送mailId)
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcMailListAll(mail.mailAllMsg)returns(public.fake); //全部邮件列表
+	rpc rpcMailDetail(mail.mailMsg)returns(public.fake); //发送邮件详情
+	rpc rpcMailAdd(mail.mailMsg)returns(public.fake); //增加邮件
+	rpc rpcMailDelete(mail.mailMsg)returns(public.fake); //删除邮件(发送mailId)
+	rpc rpcMailChange(mail.mailMsg)returns(public.fake); //修改邮件(发送mailId，还有修改的属性)
+}

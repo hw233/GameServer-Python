@@ -1,0 +1,168 @@
+package trade;//交易中心
+
+option py_generic_services=true;
+import "universal/public.proto";
+import "common.proto";
+import "props.proto";
+
+//商品信息
+message goodsInfo{
+	required int32 goodsId=1;//商品辨识编号
+	optional int32 rose=2;//涨幅
+	optional int64 price=3;//基础价格 * 100
+	optional int64 wavePrice=4;//波动价格和 * 100
+	optional int32 waveCount=5;//波动数量
+	optional int32 buyCount=6;//本周购买数量
+	optional int32 sellCount=7;//本周出售数量
+	optional int64 propsId=8;//具体物品Id
+	optional int32 goodsType=9;//商品类型 1:银币，2：元宝
+}
+
+//商品列表
+message goodsList{
+	repeated goodsInfo goodsList=1;//商品列表
+	optional int32 reqNo=2;//子类型编号
+	optional int32 taskId=3;//任务编号
+}
+
+//请求信息
+message reqInfo{
+	required int32 reqType=1;//请求类型 1:银币，2：元宝
+	optional int32 reqNo=2;//请求编号。子类型编号或者具体商品编号
+}
+
+//交易信息
+message tradeInfo{
+	optional int32 reqType=1;//请求类型 1:银币，2：元宝
+	optional int32 goodsId=2;//商品辨识编号
+	optional int32 count=3;//数量
+	optional int64 price=4;//商品总价
+	optional int64 propsId=5;//具体物品ID
+}
+
+//摆摊列表请求
+message stallListReq{
+	required int32 goodsId=1;//商品辨识编号
+	optional int32 order=2;//顺序 1:价格小到大 2:价格大到小
+	optional int32 page=3;//页数
+}
+
+
+//摆摊购买信息
+message buyInfo{
+	required int64 stallId=1;//物品摆摊id
+	optional int32 count=2;//数量
+	optional int32 goodsId=3;//商品辨识编号
+}
+
+//摆摊物品信息
+message stallProps{
+	required int64 stallId=1;//物品摆摊id
+	optional int32 goodsId=2;//商品辨识编号
+	optional int32 count=3;//数量
+	optional int64 price=4;//出售单价
+	optional props.packageItemMsg props=5; //物品详细信息
+	optional int64 basePrice=6;//基础价格
+	optional int32 quality=7;//品质
+	optional int64 sellerId=8;//卖家id
+}
+
+//摆摊出售信息
+message sellInfo{
+	required int64 propsId=1;//物品Id
+	optional int32 count=2;//数量
+	optional int64 price=3;//出售单价
+	optional int32 surplus=4;//剩余摊位
+	repeated stallProps stallList=5;//其他玩家的出售列表
+	optional int32 goodsId=6;//商品辨识编号
+}
+
+//摆摊出售列表
+message sellList{
+	repeated sellInfo sellList=1;//出售列表
+}
+
+//摆摊列表
+message stallList{
+	optional int32 pageMax=1;//最大页数
+	optional int32 order=2;//顺序 1:价格小到大 2:价格大到小
+	optional int32 page=3;//单前页数
+	repeated stallProps stallList=4;//物品信息
+	optional int32 from=5;//1:打开 2：搜索
+	optional int32 taskId=6;//任务编号
+}
+
+//摊位信息
+message sellItem{
+	optional int32 itemNo=1;//摊位序号
+	optional int32 status=2;//摊位状态 0:未上架 1:上架中 2:已过期
+	optional stallProps porps=3;//物品的信息
+	optional int64 profit=4;//提现收益
+	optional int32 time=5;//上架剩余时间
+}
+
+//摊位列表信息
+message sellItemList{
+	optional int32 countMax=1;//摊位总数
+	repeated sellItem itemList=2;//摊位信息
+	optional int64 iPriceAll=3;//提现总价格(登录会下发,用于小红点)
+}
+
+//再次上架信息
+message sellAgainInfo{
+	optional int64 stallId=1;//物品摆摊id
+	optional int64 price=2;//出售单价
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcTradeGoodsListReq(trade.reqInfo)returns(public.fake); //商品列表请求
+	rpc rpcTradeGoodsReq(trade.reqInfo)returns(public.fake); //商品请求
+	rpc rpcTradeGoodsBuy(trade.tradeInfo)returns(public.fake); //商品购买
+	rpc rpcTradeGoodsSell(trade.tradeInfo)returns(public.fake); //商品出售
+
+	//摆摊相关的
+	//rpc rpcStallPropsReq(common.int64_)returns(public.fake); //摆摊物品信息请求,上传物品摆摊id
+	
+	rpc rpcStallListReq(trade.stallListReq)returns(public.fake); //摆摊列表请求
+	rpc rpcStallBuy(trade.buyInfo)returns(public.fake); //摆摊购买物品
+
+	rpc rpcStallSellPropsReq(common.int64_)returns(public.fake); //摆摊出售物品请求,上传物品Id
+	rpc rpcStallSell(trade.sellList)returns(public.fake); //摆摊出售物品(上架)
+
+	rpc rpcStallSellItemReq(public.fake)returns(public.fake); //请求摊位信息
+	rpc rpcStallOneKeyGetProps(public.fake)returns(public.fake); //一键取回
+	rpc rpcStallOneKeyGetMoney(public.fake)returns(public.fake); //一键提现
+	rpc rpcStallBuyItem(public.fake)returns(public.fake); //购买摊位
+
+	rpc rpcStallGetProps(common.int32_)returns(public.fake); //下架物品 上传摊位序号
+	rpc rpcStallGetMoney(common.int32_)returns(public.fake); //提取现金 上传摊位序号
+	rpc rpcStallSellAgain(trade.sellAgainInfo)returns(public.fake); //再次上架
+
+	rpc rpcStallSearch(common.int32_)returns(public.fake); //搜索物品 上传商品辨识编号
+}
+
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcTradeGoodsList(trade.goodsList)returns(public.fake); //商品列表
+	rpc rpcTradeGoodsInfo(trade.goodsInfo)returns(public.fake); //商品信息
+
+	//摆摊相关的
+	rpc rpcStallList(trade.stallList)returns(public.fake); //摆摊列表信息
+	rpc rpcStallProps(trade.stallProps)returns(public.fake); //摆摊物品信息
+
+	rpc rpcSellPropsInfo(trade.sellInfo)returns(public.fake); //摆摊物品出售信息
+
+	rpc rpcStallSellItem(trade.sellItemList)returns(public.fake); //摊位信息
+
+	rpc rpcStallItemMod(trade.sellItem)returns(public.fake); //摊位信息修改
+
+	rpc rpcStallSellSuccess(common.int32_)returns(public.fake); //上架成功,上传商品辨识编号
+
+	rpc rpcStallSearchNone(common.int32_)returns(public.fake); //搜索不到物品, 上传商品辨识编号
+
+	rpc rpcOpenStall(trade.stallList)returns(public.fake); //打开摆摊
+
+	rpc rpcStallPriceAllMod(trade.sellItemList)returns(public.fake); //提现总价格修改，用于小红点
+}

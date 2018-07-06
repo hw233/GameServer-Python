@@ -1,0 +1,48 @@
+package act_guildFight;	//帮战服务
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+import "guild.proto";
+
+//帮战基础信息
+message baseInfo{
+	optional int32 timeState = 1; //帮战时间段, 1.报名期 2.公示期 3.入场期 4.开战期
+	optional bytes guildNameEnemy = 2; //敌方帮派名
+	optional int32 roleCount = 3; //己方人数
+	optional int32 roleCountEnemy = 4; //敌方人数
+	optional int32 protectTimeout = 5; //保护剩余时间(秒)
+	optional int32 pointMy = 6; //个人积分
+	optional int32 winCountMy = 7; //本人胜利场数
+	optional bool isTeamMember = 8; //是否精英队员
+}
+
+//战况
+message fightResult{
+	repeated int32 teamResultList = 1; //己方精英队结果, 0.激战中 1.胜利 2.失败 3.平局
+	repeated int32 teamResultEnemyList = 2; //敌方精英队结果, 0.激战中 1.胜利 2.失败 3.平局
+	optional int32 roleCount = 3; //己方人数
+	optional int32 roleCountEnemy = 4; //敌方人数
+	optional int32 winCount = 5; //己方胜利场数
+	optional int32 winCountEnemy = 6; //敌方胜利场数
+	optional int32 winCountMy = 7; //本人胜利场数
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcActGuildFightTeamRequest(public.fake)returns(public.fake);//请求帮战精英队
+	rpc rpcActGuildFightQuitRequest(public.fake)returns(public.fake);//请求退出帮战
+	rpc rpcActGuildFightResultRequest(public.fake)returns(public.fake);//请求战况数据
+	rpc rpcActGuildFightPK(common.int64_)returns(public.fake);//点击玩家PK
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcActGuildFightEnter(act_guildFight.baseInfo)returns(public.fake);//进入帮战
+	rpc rpcActGuildFightChange(act_guildFight.baseInfo)returns(public.fake);//修改帮战数据
+	rpc rpcActGuildFightQuit(public.fake)returns(public.fake);//退出帮战，清除帮战相关界面和数据
+	rpc rpcActGuildFightTeam(guild.fightTeam)returns(public.fake);//帮战精英队
+	rpc rpcActGuildFightResult(act_guildFight.fightResult)returns(public.fake);//战况数据
+}

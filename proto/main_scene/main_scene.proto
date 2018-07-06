@@ -1,0 +1,158 @@
+package main_scene;
+
+option py_generic_services=true;//是否生成python服务
+import "universal/public.proto";
+import "universal/base.proto";
+
+
+//注册角色
+message registerRoleMsg{
+	required int64 epId=1; //连接id
+	required int64 roleId=2; //角色id
+}
+
+//创建实体信息
+message entityInfo{
+	required int64 iEttId=1;//实体id
+	optional int32 iEttType=2;//实体类型
+	optional int32 iSceneId=3;	
+	optional int32 x=4;//坐标
+	optional int32 y=5;	
+	optional int32 d=6;//面向
+	optional bytes sBaseSerialized=7;//基础数据
+	optional int32 action=8; //动作
+}
+
+//修改实体信息
+message modEntityInfo{
+	required int64 iEttId=1;//实体id
+	required bytes sBaseSerialized=2;//实体数据1
+	optional bytes sChangePacket=3;//改变数据
+	repeated int64 uIgnoreId=5;	//过滤ID
+}
+
+//移动包
+message moveInfo{
+	required int64 iEttId=1; //实体id
+	required int32 x=2;//x
+	required int32 y=3;//y
+	optional int32 sceneId=4; //场景id
+} 
+
+//切换场景
+message switchSceneInfo{
+	required int32 iSceneId=1;	//场景ID
+	required int64 iEttId=2; //实体id
+	required int32 x=3;//x
+	required int32 y=4;//y
+	optional bytes sSwitchSerialized=5;//切换场景数据，发给客户端
+}
+
+//场景
+message sceneInfo{
+	required int32 iSceneId=1;//场景ID
+	required int32 iWidth=2;	//场景长度
+	required int32 iHeight=3;	//场景高度
+	required int32 iRes=4;//资源
+	optional int32 iBroadcastRole=5;//特殊处理是否能看到其它玩家（0:可以 1：不可以）
+}
+
+//从场景移除实体
+message removeEntity{
+	required int32 iSceneId=1;//场景ID
+	required int64 iEttId=2; //实体id
+}
+
+//移除某个场景的某类型的实体
+message removeEntityByType{
+	required int32 iSceneId=1;//场景ID
+	optional int32 iEttType=2;//实体类型
+}
+
+//以x,y为中心广播一个网络包
+message broadCastByXYInfo{
+	required int32 iSceneId=1;	//场景ID
+	required int32 x=2;	//x
+	required int32 y=3;	//y
+	required bytes sPacket=4;	//广播数据
+	repeated int64 uIgnoreId=5;	//过滤ID
+}
+
+//以某实体为中心广播一个网络包
+message broadCastByEntityInfo{
+	required int64 iEttId=1;	//实体id
+	required bytes sPacket=2;	//广播数据
+	repeated int64 uIgnoreId=3;	//过滤ID
+}
+
+
+
+//===============================================
+//队伍
+
+//改变队伍信息（包含创建）
+message modTeamInfo{
+	optional int32 teamId=1; 		//队伍id
+	optional int64 leader=2; 		//队长
+	repeated int64 memberList=3; 	//队员列表
+	repeated int64 leaveList=4; 	//暂离队员 
+	repeated int64 offlineList=5; 	//离线队员
+}
+
+//删除队伍
+message releaseTeam{
+	optional int32 teamId=1; //队伍id
+}
+
+message packetInfo{
+	required int64 roleId=1;		//实体id
+	required bytes sSerialized=2;	//数据
+}
+
+//===============================================
+
+//主服务 --> 场景服务
+service main2scene{	
+	//rpc rpcHelloScene_iAmMain(public.fake)returns(base.bool_);//test 
+	rpc rpcSSRoleMove(main_scene.moveInfo)returns(public.fake);//移动包
+	rpc rpcSSEntityMove(main_scene.moveInfo)returns(public.fake);//非角色移动
+
+	rpc rpcRegisterRole(main_scene.registerRoleMsg)returns(public.fake); //注册角色(角色登录时向场景服务发送)
+	rpc rpcUnRegisterRole(base.int64_)returns(public.fake); //注销角色(角色下线时向场景服务发送)
+
+	rpc rpcCreateEntity(main_scene.entityInfo)returns(public.fake);//创建实体
+	rpc rpcDeleteEntity(base.int64_)returns(public.fake);//删除实体
+	rpc rpcModEntityInfo(main_scene.modEntityInfo)returns(public.fake);//修改实体信息
+	rpc rpcRemoveEntity(main_scene.removeEntity)returns(public.fake);//从场景移除实体
+	rpc rpcRemoveEntityByType(main_scene.removeEntityByType)returns(public.fake);//移除某个场景的某类型的实体
+	rpc rpcRemoveAllEntity(base.int64_)returns(public.fake);//移除某个场景的全部实体(不需要发包给客户端)
+
+	rpc rpcCreateScene(main_scene.sceneInfo)returns(public.fake);//创建场景
+	rpc rpcRemoveScene(base.int32_)returns(public.fake);//删除场景
+	
+	rpc rpcBroadcastByXY(main_scene.broadCastByXYInfo)returns(public.fake);//以x,y为中心广播一个网络包
+	rpc rpcBroadcastByEntity(main_scene.broadCastByEntityInfo)returns(public.fake);//以某实体为中心广播一个网络包	
+
+	rpc rpcSwitchScene(main_scene.switchSceneInfo)returns(public.fake);//主服务要求切换场景
+
+	rpc rpcModSSTeamInfo(main_scene.modTeamInfo)returns(public.fake);//改变队伍信息（包含创建）
+	rpc rpcDelSSTeam(main_scene.releaseTeam)returns(public.fake);//删除队伍
+
+	rpc rpcSendToClient(main_scene.packetInfo)returns(public.fake);//通过场景服发包给客户端
+
+	//为什么不是主服务发切换场景包到客户端,主服务器通知场景服务再发周围实体包给客户端呢?
+	//因为客户端对包顺序有要求,如果两个包分别走了不同的路径,是无法保证包按正确的顺序到达
+	//所以干脆把主服务要发的包委托给场景服,由场景服来代为发场景切换包,然后再发周围的实体包.
+	//这样就可以保证包的顺序
+
+	rpc rpcHotUpdate(base.bytes_)returns(public.fake); //热更新
+}
+
+//场景服务--> 主服务
+service scene2main{
+	rpc rpcHelloMain_iAmScene(public.fake)returns(base.bool_);//test 
+
+	rpc rpcRoleNewXY(main_scene.moveInfo)returns(public.fake);//修改角色座标
+}
+
+

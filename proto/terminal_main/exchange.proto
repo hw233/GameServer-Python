@@ -1,0 +1,32 @@
+package exchange;
+
+//钻石买单,钻石卖单
+message order{	
+	required int64 iPrice=1;    //单价
+	required int32 iAmount=2;   //数量
+}
+
+//档位信息
+message gearInfo{
+	required int32 iGear=1;   //档位. 3:卖单三档,2:卖单二档,1:卖单一档,-1:买单一档,-2:买单二档,-3:买单三档
+	required int32 iPrice=2;   //单价 0表示无挂单
+	required int32 iAmount=3;   //数量	
+}
+
+//钻石行情
+message quotation{	
+	repeated gearInfo gearInfo=1;
+}
+
+//我的订单
+message myOrder{
+	message orderInfoTag{//我的订单信息
+		required int32 iOrderId=1;   //订单id
+		required int32 iPrice=2;   //单价
+		required int32 iAmount=3;   //数量	
+		required int32 iType=4;   //1是买单 2是卖单
+		optional bytes sTime=5;//到期撤单时间
+		//总价服务器就不发了,客户端自行计算
+	}
+	repeated orderInfoTag orderInfo=1;
+}

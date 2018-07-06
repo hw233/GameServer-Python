@@ -1,0 +1,71 @@
+//技能相关
+package skill;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//技能信息(职业技能、帮派技能、修炼技能等)
+message skillInfo{
+	required int32 iId=1; //技能编号
+	optional int32 iLevel=2; //技能等级
+	repeated paramMsg params=3;	//附加参数
+	optional int32 iPoint=4; // 修炼点
+}
+
+message skillInfoAll{
+	repeated skillInfo skillInfoList = 1;//所有任务
+}
+
+message paramMsg{
+	required bytes sKey=1; //健
+	required bytes sVal=2; //值
+}
+
+//炼药材料
+message material{
+	repeated uint64 iPropsIdList=1; //材料物品id
+}
+
+
+//炼药结果
+message resultInfo{
+	required int32 iReturnCode=1; //返回码，0.成功  1.失败
+}
+
+//修炼信息
+message practiceInfo{
+	required int32 iId=1; //修炼编号
+	required int32 iType=2;//类型 1：一次 2:十次 3：道具 
+}
+
+//修炼等级影响
+message practiceLevel{
+	required int32 iGuildLevel=1; //帮派等级影响
+	required int32 iGuildPoint=2; //历史帮贡影响
+	required int32 iGuildHistory=3;//历史帮贡
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcSkillSchUpgrade(skill.skillInfo)returns(public.fake); //升级职业技能，id为0时表示一键升级
+	rpc rpcSkillGuildLearn(skill.skillInfo)returns(public.fake); //学习帮派技能
+	rpc rpcSkillGuildUse(skill.skillInfo)returns(public.fake); //使用帮派技能
+	//rpc rpcSkillMakeMedicine(skill.material)returns(public.fake); //炼药，炼药材料为空时表示消耗银币
+
+	rpc rpcSkillPracticeOpen(public.fake)returns(public.fake); //请求修炼等级上限
+	rpc rpcSkillPracticeLearn(skill.practiceInfo)returns(public.fake); //修炼学习
+}
+
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcSkillLevelAll(skill.skillInfoAll)returns(public.fake); // 所有技能信息
+	rpc rpcSkillLevel(skill.skillInfo)returns(public.fake); //增加或删除技能(作废)
+	rpc rpcSkillAdd(skill.skillInfo)returns(public.fake); //增加技能
+	rpc rpcSkillDelete(skill.skillInfo)returns(public.fake); //删除技能
+	rpc rpcSkillChange(skill.skillInfo)returns(public.fake); //修改技能
+	//rpc rpcSkillMedicineResult(skill.resultInfo)returns(public.fake); //炼药结果
+
+	rpc rpcSkillPracticeLevel(skill.practiceLevel)returns(public.fake); //修炼等级上限
+}

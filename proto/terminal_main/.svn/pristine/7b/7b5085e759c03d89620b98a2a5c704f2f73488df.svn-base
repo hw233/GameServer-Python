@@ -1,0 +1,24 @@
+package act_escort;	//运镖服务
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+message escortMsg {
+	optional int32 time=1; // 开始时间UTC秒
+	optional bytes sceneName=2; //目标场景名称
+	optional bytes npcName=3; //目标NPC名称
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcEscortAbort(public.fake)returns(public.fake); // 放弃运镖
+	rpc rpcEscortQuestGoAhead(public.fake)returns(public.fake); //请求前往
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcEscortInfo(act_escort.escortMsg)returns(public.fake); //运镖信息
+	rpc rpcEscortDone(public.fake)returns(public.fake); //完成运镖(放弃或完成都会收到，收到之后关闭运镖信息面板)
+}

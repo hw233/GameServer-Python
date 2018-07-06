@@ -1,0 +1,182 @@
+//宠物相关
+package pet;
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//宠物属性
+message petAttr{
+	required int64 petId=1; //宠物id
+	optional int32 idx=2; //编号
+	optional int32 shape=3; //造型
+	optional bytes name=4; //名称
+	optional int32 level=5; //等级
+	optional int32 exp=6; //经验
+	optional int32 expNext=7; //下级经验
+	optional int32 star=8; //星级
+	optional int32 fighter=9; //是否参战, 0.否 1.是
+	optional int32 carry=10; //是否携带
+	optional int32 score=11; //评分
+	optional int32 sklSlotExp=12; //技能格经验
+	optional int32 sklSlotExpNxt=13; //技能格下级经验
+	repeated int32 shapeParts=14; // 造型部位, 参照role.roleAttr
+	optional int32 status=15; //状态(0普通1凝神)
+	optional int32 sklSlotExpAll=16;//升满所有技能格所需的剩余经验
+	repeated int32 colors=17; // 染色, 参照role.roleAttr
+
+	optional int32 hp=20; //生命
+	optional int32 hpMax=21; //生命上限
+	optional int32 mp=22; //真气
+	optional int32 mpMax=23; //真气上限
+	optional int32 phyDam=24; //物理伤害
+	optional int32 magDam=25; //法术伤害
+	optional int32 phyDef=26; //物理防御
+	optional int32 magDef=27; //法术防御
+	optional int32 spe=28; //速度
+	optional int32 phyCrit=29; //物理暴击
+	optional int32 magCrit=30; //法术暴击
+	optional int32 phyReCrit=31; //物理抗暴
+	optional int32 magReCrit=32; //法术抗暴
+	
+	optional int32 con=40; //体质
+	optional int32 mag=41; //魔力
+	optional int32 str=42; //力量
+	optional int32 res=43; //耐力
+	optional int32 spi=44; //精神
+	optional int32 dex=45; //敏捷
+	optional int32 conAllot=46; //玩家分配的体质
+	optional int32 magAllot=47; //玩家分配的魔力
+	optional int32 strAllot=48; //玩家分配的力量
+	optional int32 resAllot=49; //玩家分配的耐力
+	optional int32 spiAllot=50; //玩家分配的精神
+	optional int32 dexAllot=51; //玩家分配的敏捷
+	optional int32 point=52; //潜力点
+	optional int32 life=53; //寿命
+	optional int32 sklPoint=54; //技能潜力点
+	
+	optional int32 hpGen=60; //生命资质
+	optional int32 phyAttGen=61; //物攻资质
+	optional int32 magAttGen=62; //法攻资质
+	optional int32 phyDefGen=63; //物防资质
+	optional int32 magDefGen=64; //法防资质
+	optional int32 speGen=65; //速度资质
+	optional bytes grow=66; //成长
+	optional int32 hpGenExt=67; //生命额外资质
+	optional int32 phyAttGenExt=68; //物攻额外资质
+	optional int32 magAttGenExt=69; //法攻额外资质
+	optional int32 phyDefGenExt=70; //物防额外资质
+	optional int32 magDefGenExt=71; //法防额外资质
+	optional int32 speGenExt=72; //速度额外资质
+	optional bytes growExt=73; //成长额外资质
+
+	optional int32 defaultPerform=80; //默认法术
+	optional bool bAutoPoint=81; //是否自动加点
+}
+
+//加点
+message points{
+	required int64 petId=1; //宠物id
+	optional int32 con=2; //体质
+	optional int32 mag=3; //魔力
+	optional int32 str=4; //力量
+	optional int32 res=5; //耐力
+	optional int32 spi=6; //精神
+	optional int32 dex=7; //敏捷
+
+	optional int32 schemeIndex=8;//使用了哪一种自动加点方案 0.没有 1.全攻型 2.均衡型 3.保守型
+}
+
+//使用物品
+message items{
+	required int64 petId=1; //宠物id
+	required int64 itemId=2; //物品id
+	optional int32 useCnt=3; //使用数量(次数)
+}
+
+//使用培养物品
+message propsNoInfo{
+	required int64 petId=1; //宠物id
+	required int64 propsNo=2; //物品编号
+	required int32 useCnt=3; //使用数量(次数)
+}
+
+//宠物数据
+message petData{
+	required int32 petId=1; //宠物id
+	optional petAttr petAttr=2; //宠物属性
+	repeated int32 skillList=3; //宠物技能列表
+}
+
+//宠物列表
+message petList{
+	repeated petData petDataList=1;
+}
+
+//宠物技能
+message petSkill{
+	required int32 petId=1; //宠物id
+	required int32 skillId=2; //技能id
+}
+
+//宠物洗炼
+message petWash{
+	required int64 petId=1; //宠物id
+	optional int32 wash=2; //洗炼方式(0正常洗炼，1保底洗炼)
+	optional int32 hpGenWashNew=3; //生命洗炼后资质
+	optional int32 phyAttGenWashNew=4; //物攻洗炼后资质
+	optional int32 magAttGenWashNew=5; //法攻洗炼后资质
+	optional int32 phyDefGenWashNew=6; //物防洗炼后资质
+	optional int32 magDefGenWashNew=7; //法防洗炼后资质
+	optional int32 speGenWashNew=8; //速度洗炼后资质
+	optional int32 sklPointWashNew=9; //技能潜力点洗炼后
+}
+
+//技能书
+message skillBook{
+	required int64 propsId=1; //技能书ID(服务端生成的，非策划表ID)
+	optional int32 useCnt=2; //使用数量
+}
+
+//技能书选择
+message petBooksSelected{
+	required int64 petId=1; //异兽ID
+	repeated skillBook books=2; //选择的技能书列表
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcPetRename(pet.petAttr)returns(public.fake); //宠物改名，只需要传petId和name
+	rpc rpcPetFighter(pet.petAttr)returns(public.fake); //宠物参战或休息，只需要传petId和fighter(0.休息 1.参战)
+	rpc rpcPetCarry(pet.petAttr)returns(public.fake); //宠物携带或取消，只需要传petId和carry(0.取消 1.携带)
+	rpc rpcPetAttrPointReset(common.int64_)returns(public.fake); //宠物重置属性点，只需要传petId
+	rpc rpcPetAttrPointAdd(pet.points)returns(public.fake); //宠物加属性点
+	rpc rpcPetAttrPointScheme(pet.points)returns(public.fake); //宠物自动加点方案
+	rpc rpcPetAttrPointSchemeRequest(common.int64_)returns(public.fake); //请求宠物自动加点方案,只需要传petId
+	rpc rpcPetUpgrade(common.int64_)returns(public.fake); // 升星,只需要传petId
+	rpc rpcPetLearnSkill(pet.items)returns(public.fake); // 学习技能
+	rpc rpcPetUseSkillBook(pet.petBooksSelected)returns(public.fake); // 使用技能书(加经验开技能格用)
+	rpc rpcPetUseItem(pet.propsNoInfo)returns(public.fake); //宠物使用培养物品
+	rpc rpcPetWashReq(pet.petWash)returns(public.fake); //请求洗炼信息
+	rpc rpcPetWash(pet.petWash)returns(public.fake); //洗炼(需传参数petId, wash)
+	rpc rpcPetWashReplace(pet.petWash)returns(public.fake);//洗炼替换(需传参数petId)
+	rpc rpcPetWashLock(pet.petWash)returns(public.fake); //洗炼加锁(需传参数petId, lock)
+	rpc rpcPetHolyExchange(common.int32_)returns(public.fake); //兑换神兽
+	rpc rpcPetGet(common.int64_)returns(public.fake); //前往齐霞儿领取宠物
+}
+
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcPetAdd(pet.petData)returns(public.fake); //增加宠物
+	rpc rpcPetDel(common.int64_)returns(public.fake); //删除宠物,只传宠物petId
+	rpc rpcPetAttrChange(pet.petAttr)returns(public.fake); //宠物属性发生变化
+	rpc rpcPetList(pet.petList)returns(public.fake); //宠物列表
+	rpc rpcPetSkillAdd(pet.petSkill)returns(public.fake); //增加宠物技能
+	rpc rpcPetSkillDel(pet.petSkill)returns(public.fake); //删除宠物技能
+	rpc rpcPetAttrPointSchemeResponse(pet.points)returns(public.fake); //发送宠物自动加点方案
+	rpc rpcPetWashResponse(pet.petWash)returns(public.fake); //洗炼信息
+	rpc rpcPetShow(common.int64_)returns(public.fake); //异兽任务完成时弹出界面
+	rpc rpcPetHolyExchangeShow(public.fake)returns(public.fake); //打开兑换神兽界面
+}

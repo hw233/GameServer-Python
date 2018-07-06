@@ -1,0 +1,29 @@
+package state;
+option py_generic_services=true;
+
+import "universal/public.proto";
+
+// 状态信息
+message stateInfo{
+	required int32 iNo = 1;		// 状态编号，导表里的编号
+	optional bytes sDesc = 2;	// 状态服务端描述
+	optional int32 iTime = 3;	// 状态剩余时间，没有时间限制的状态不发这个域，有这个域表示剩余多少秒
+}
+
+// 所有状态信息
+message stateInfoAll{
+	repeated stateInfo stateInfoList = 1;		// 所有状态信息
+}
+
+// 上行（客户端主动发起）
+service terminal2main{
+	rpc rpcStateRepairAll(public.fake)returns(public.fake);	// 一键修理已穿戴装备
+	rpc rpcStateClick(state.stateInfo)returns(public.fake); // 传状态编号iNo，状态按钮点击事件
+}
+
+// 下行（服务端主动发起）
+service main2terminal{
+	rpc rpcStateInfo(state.stateInfo)returns(public.fake);	// 增加或更新状态
+	rpc rpcStateInfoDel(state.stateInfo)returns(public.fake);	// 删除状态，只发一个状态编号
+	rpc rpcStateInfoAll(state.stateInfoAll)returns(public.fake);	// 角色身上的所有状态
+}

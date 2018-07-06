@@ -1,0 +1,79 @@
+package act_race;	//竞技场服务
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//进入竞技场
+message enterMsg{
+	optional int32 timeout = 1; //活动剩余时间倒时(单位:秒)
+	optional int32 state = 2; //活动状态，0.已结束 1.准备中 2.进行中
+}
+
+//竞技信息
+message infoMsg{
+	optional int32 countWin = 1; //胜利场数
+	optional int32 countFight = 2; //战斗场数
+	optional int64 racePoint = 3; //竞技积分
+	optional int64 pkPoint = 4; //武勋值
+	optional int32 matchState = 5; //匹配状态, 0.停止匹配 1.开始匹配中 2.匹配成功
+	optional int32 frozenTime = 6; //冷却时间
+}
+
+//竞技排行榜数据
+message rankMsg{
+	optional int32 rankNo = 1; //名次, 0.未上榜
+	optional bytes name = 2; //角色名称
+	optional int32 schoolId = 3; //门派
+	optional int64 racePoint = 4; //竞技积分
+}
+
+message rankAllMsg{
+	repeated rankMsg rankList = 1; //竞技排行榜数据列表
+	optional rankMsg rankMy = 2; //我的竞技排行榜数据
+}
+
+//战报
+message fightInfo{
+	optional int64 time = 1; //时间
+	optional int32 times = 2; //场次
+	optional bytes result = 3; //结果
+}
+
+//战报列表
+message fightInfoList{
+	repeated fightInfo infoList = 1; //战报列表
+}
+
+//匹配信息
+message matchInfo{
+	optional int64 roleId = 1; //对手玩家id
+	optional bytes name = 2; //玩家名
+	optional int32 shape = 3; //造型
+	optional int32 level = 4; //等级
+	optional int32 school = 5; //门派
+	optional int32 timeout = 6; //倒计时(单位:秒)
+	optional int32 fightPower = 7; //战力
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcRaceRankGet(public.fake)returns(public.fake);//请求竞技排行榜数据
+	rpc rpcRaceQuit(public.fake)returns(public.fake);//请求离开竞技场
+	rpc rpcRaceMatchStart(public.fake)returns(public.fake);//开始匹配
+	rpc rpcRaceMatchStop(public.fake)returns(public.fake);//停止匹配
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcRaceRankSend(act_race.rankAllMsg)returns(public.fake);//发送竞技排行榜数据
+	rpc rpcRaceEnter(act_race.enterMsg)returns(public.fake);//进入竞技场
+	rpc rpcRaceInfo(act_race.infoMsg)returns(public.fake);//显示竞技信息
+	rpc rpcRaceInfoChange(act_race.infoMsg)returns(public.fake);//修改竞技信息
+	rpc rpcRaceEnd(public.fake)returns(public.fake);//结束竞技，清除该活动的全部窗口
+	rpc rpcRaceFightInfoList(act_race.fightInfoList)returns(public.fake);//发送全部战报
+	rpc rpcRaceFightInfoAdd(act_race.fightInfo)returns(public.fake);//增加战报
+	rpc rpcRaceMatchSend(act_race.matchInfo)returns(public.fake);//发送匹配对手信息
+}

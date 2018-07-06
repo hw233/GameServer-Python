@@ -1,0 +1,87 @@
+package auction;
+import "props.proto";
+
+//购买物品
+message sell{
+	required int64 iPropsId=1;  //物品id
+	required int64 iPrice=2;    //总计出售价格，而不是单价
+	required int32 iAmount=3;   //出售数量
+}
+//查看拍卖物品列表请求(下一页、上一页也走这个协议)(对搜索结果重排序，翻页也是这一个)
+message reqGoodsList{
+	required int32 iPropsType=1;  //物品类型 0:从搜索结果 其他:参考goodsList
+	optional int32 iPage=2;    //物品页数,从0开始 
+	optional int32 iOrderBy=3;   //排序类型 1:价格  2:使用等级
+	optional bool bAsc=4;   //true:升序   false:降序
+}
+//排序依据
+enum orderByType {
+	PRICE=1;//价格
+	USE_LV=2;//使用等级
+}
+
+//搜索
+message searchReq{
+	message tagEquipSearch {	
+		optional int32 iSchool=1;  //职业
+		optional int32 iWearPos=2;    //装备部位
+		repeated int32 useLv=3;    //使用等级
+		repeated int32 color=4;    //颜色
+		repeated int32 quality=5;    //品质
+		
+	}
+	message tagGemSearch {
+		optional int32 iKind=1;    //阶位: 1 2 3 4 5 
+		repeated int32 lv=2;    //lv: 1 2 3 4 5 
+	}
+	message tagOtherSearch {	
+		optional bytes sKeyword=1;  //搜索关键字
+	}
+	optional tagEquipSearch equipSearch=1;
+	optional tagGemSearch gemSearch=2;
+	optional tagOtherSearch otherSearch=3;
+}
+
+//装备信息(显示行情列表时使用)
+message equipInfo {	
+	optional int64 iPropsId=1;//物品id
+	optional bytes sName=2;//名字
+	optional uint32 iPrice=3;//价格
+	optional uint32 iUseLv=4;//使用等级
+	optional uint32 iQuality=5;//装备品质
+	optional uint32 iStrengThenLv=6;//强化等级
+	optional int32	iColor=7;//装备颜色
+	optional uint32 iPropsIcon=8;//物品图标
+}
+//普通道具信息(显示行情列表时使用)
+message normalInfo {	
+	required int64 iPropsId=1;//物品id
+	optional bytes sName=2;//名字
+	required uint32 iPrice=3;//价格
+	required int32 iStack=4;//数量
+	optional uint32 iPropsIcon=5;//物品图标
+	optional uint32 iUseLv=6;//使用等级
+}
+
+//物品道具列表(行情列表)(搜索结果展示也用这个消息)
+message goodsList{
+	optional int32 iTab=1;//页签(1,2,3,4,4,5,6,武器,帽子,鞋子.宝石,材料,0:搜索结果)
+	required int32 iMsgType=2;//下面的消息类型  1:普通道具  2:装备
+	repeated bytes sSerialized=3;	
+	optional int32 iMaxPage=4;
+}
+
+//我的架上物品
+message myGoodsList{
+	repeated myGoodsInfo goodsInfo=1;
+
+	message myGoodsInfo{//不区分装备,非装备,全部道具都用这个消息
+		required int64 iPropsId=1;//物品id
+		required uint32 iPropsIcon=2;//物品图标
+		required bytes sName=3;//名字
+		required uint32 iPrice=4;//价格
+		optional int32 iStack=5;//数量
+		optional int32	iColor=6;//颜色
+	}
+}
+

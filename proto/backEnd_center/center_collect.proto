@@ -1,0 +1,121 @@
+option py_generic_services=true;//是否生成python服务
+
+package center_collect;
+
+import "universal/public.proto";
+import "universal/base.proto";
+
+
+//更新玩家信息
+message updateRoleInfo{
+	required uint64	iRoleId=1;//角色ID
+	optional uint32 iServerId=2;//服务器编号
+	optional bytes fPosX=3;	//纬度
+	optional bytes fPosY=4;	//经度
+	optional uint32 iGender=5;	//性别
+	optional bytes sName=6;//玩家名称
+	optional int32 iSchool=7; //门派
+}
+
+//玩家信息
+message roleInfo{
+	required uint64	iRoleId=1;//角色ID
+	optional uint32 iServerId=2;//服务器编号
+	optional bytes fPosX=3;	//纬度
+	optional bytes fPosY=4;	//经度
+}
+
+//搜索
+message locationInfo{
+	required uint64	iRoleId=1;//角色ID
+	optional uint32 iServerId=2;//服务器编号
+	optional bytes fPosX=3;	//纬度
+	optional bytes fPosY=4;	//经度
+	optional uint32 iGender=5;	//性别
+	optional bytes sName=6;//玩家名称
+	optional int32 iSchool=7; //门派
+}
+
+//战斗
+message triggerEventInfo{
+	required uint64 iEventId=1;//事件ID
+	required uint64	iRoleId=2;//角色ID
+	required bytes fPosX=3;	//纬度
+	required bytes fPosY=4;	//经度
+	optional uint32 iServerId=5;//服务器编号
+	optional uint32 iGender=6;	//性别
+	optional bytes sName=7;//玩家名称
+}
+
+//战斗结果
+message triggerEventRes{
+	required uint64 iEventNo=1;//事件编号
+	optional bytes sFailReason=2;//失败原因
+}
+
+//
+message collectCommInfo{
+	optional uint64	iRoleId=1;//角色ID
+	optional uint64 iEventId=2;//事件ID
+}
+
+//删除事件
+message delEventInfo{
+	required uint64	iRoleId=1;//角色ID
+	required uint64 iEventId=2;//事件ID
+	required uint32 iEventType=3;//事件类型（1:搜索 2：标记，3：完成，4：触发）
+}
+
+//指令
+message instruct{
+	required uint32 iType=1;
+	optional uint64	iRoleId=2;//角色ID
+	optional uint32 iEventCnt=3;//事件数量
+	optional uint32 iAngle=4;//角度
+	optional uint32 iDistance=5;//距离
+}
+
+//搜索周围玩家结果
+message aroundRoleResponse{
+	required bytes sFailReason=1;//失败原因
+	required bytes sAroundRole=2;//结果
+}
+
+//事件操作结果
+message eventOperResponse{
+	optional bytes sTips=1;//提示
+	optional bytes sSerialized=2;//发给客户端的数据
+}
+
+//被动增加/删除事件
+message passiveEventInfo{
+	required uint64	iRoleId=1;//角色ID
+	required bytes sSerialized=2;//发给客户端的数据
+}
+
+//中心服务 --> 主服务
+service center2backEnd{	
+	rpc rpcCenterCollectTest(public.fake)returns(public.fake);	//测试
+
+	rpc rpcC2BCollectAddEvent(center_collect.passiveEventInfo)returns(public.fake); //增加事件信息列表（2：标记，3：完成，4：触发）
+	rpc rpcC2BCollectDelEvent(center_collect.passiveEventInfo)returns(public.fake); //删除事件信息列表（2：标记，3：完成，4：触发）
+}
+
+//主服务--> 中心服务
+service backEnd2center{
+	rpc rpcMainCollectTest(center_collect.instruct)returns(public.fake);	//测试
+	
+	rpc rpcB2CCollectUpdateLocation(center_collect.updateRoleInfo)returns(public.fake);//更新位置信息，用于查找周围玩家
+	rpc rpcB2CCollectSearch(center_collect.locationInfo)returns(base.bytes_);//搜索
+	rpc rpcB2CCollectTriggerEvent(center_collect.triggerEventInfo)returns(center_collect.triggerEventRes);//战斗
+	rpc rpcB2CCollectWarWin(center_collect.triggerEventInfo)returns(public.fake);//战斗胜利
+
+	rpc rpcB2CCollectSeeTrigger(center_collect.roleInfo)returns(base.bytes_);//查看触发者
+	rpc rpcB2CCollectSelfTrigger(center_collect.roleInfo)returns(base.bytes_);//查看自己触发
+	rpc rpcB2CCollectSeeMarker(center_collect.roleInfo)returns(base.bytes_);//查看标记事件
+
+	rpc rpcB2CCollectMarker(center_collect.collectCommInfo)returns(center_collect.eventOperResponse);//标记事件
+	rpc rpcB2CCollectDelEvent(center_collect.delEventInfo)returns(center_collect.eventOperResponse);//删除事件
+
+	rpc rpcB2CCollectAround(center_collect.roleInfo)returns(center_collect.aroundRoleResponse);//周围玩家
+}

@@ -1,0 +1,1 @@
+start "" /min python logic/main.py robot

@@ -1,0 +1,79 @@
+package act_fairyland;	//试炼幻境服务
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+import "props.proto";
+
+//幻境信息
+message infoMsg{
+	optional int32 iPassStage = 1;//已过关卡
+	optional int32 iSurplusCount = 2;//剩余挑战次数
+}
+
+//关卡信息
+message stageMsg{
+	required int32 iStageNo = 1;//关卡编号
+	optional int32 iFastTime = 2;//最快通关时间(秒)
+	optional bytes sFastName = 3;//最快玩家
+	optional int32 iMyTime = 4;//我的通关时间(秒) 0是未通关 -1是跳过
+	optional bool bCanSkip = 5;//能否跳过
+	optional int32 iTimeOut = 6;//超时时间(秒)
+}
+
+//npc信息
+message npcMsg{
+	required int64 iId=1;  //id
+	optional bytes sName=2; //名称
+	optional int32 iShape=3; //造型
+	optional int32 iX=4; //x坐标
+	optional int32 iY=5; //y坐标
+	optional int32 iD=6; //面向
+	repeated int32 shapeParts=7; // 造型部位, 参照role.roleAttr
+	optional bytes sTitle=8; //称谓
+	repeated int32 colors=9; // 染色, 参照role.roleAttr
+	optional int32 iAction=10; // 动作
+}
+
+//翻牌物品
+message boxRewardMsg{
+	optional int32 iPropsNo=1;//物品编号
+	optional int32 iAmount=2;//物品数量
+}
+
+//翻牌奖励信息
+message boxRewardResult{
+	required int32 iPos=1; //位置
+	repeated boxRewardMsg rewardList=2; //物品
+}
+
+//上行(客户端主动发起)
+service terminal2main{
+	rpc rpcFairylandEnter(public.fake)returns(public.fake);//进入幻境
+	rpc rpcFairylandQuit(public.fake)returns(public.fake);//离开幻境
+
+	rpc rpcFairylandStageGet(act_fairyland.stageMsg)returns(public.fake);//请求关卡数据,上传关卡编号,服务端回rpcFairylandStageSend
+
+	rpc rpcFairylandStageFight(act_fairyland.stageMsg)returns(public.fake);//挑战,上传关卡编号
+	rpc rpcFairylandPass(act_fairyland.stageMsg)returns(public.fake);//跳过,上传关卡编号
+
+	rpc rpcFairylandTaskQuest(act_fairyland.stageMsg)returns(public.fake);//任务请求(点击右边的任务界面)
+
+	rpc rpcFairylandBoxChoose(act_fairyland.boxRewardResult)returns(public.fake);//翻牌选择 上传位置
+}
+
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcFairylandBegin(act_fairyland.infoMsg)returns(public.fake);//开始试炼幻境
+	rpc rpcFairylandChange(act_fairyland.infoMsg)returns(public.fake);//修改幻境信息
+	rpc rpcFairylandEnd(public.fake)returns(public.fake);//结束试炼幻境
+
+	rpc rpcFairylandInfo(act_fairyland.infoMsg)returns(public.fake);//发送幻境数据,点击npc时下发
+
+	rpc rpcFairylandStageSend(act_fairyland.stageMsg)returns(public.fake);//发送关卡数据
+
+	rpc rpcFairylandBoxRewardOpen(common.int32_)returns(public.fake);//弹出翻牌,剩余秒数
+	rpc rpcFairylandBoxRewardResult(act_fairyland.boxRewardResult)returns(public.fake);//翻牌结果
+}

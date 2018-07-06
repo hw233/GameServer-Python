@@ -1,0 +1,26 @@
+策划数据导表流程
+1.策划修改目录workDir/data/uenc/，里面的策划数据文件
+(workDirs是服务器的工作目录)
+比如workDir/data/uenc/props.uenc文件
+
+2.策划在她/他自己的机器上用svn提交上面修改的文件
+
+3.策划用客户端连接游戏服务器
+执行@update命令更新游戏服务器文件
+本质上是游戏服务器执行了下面的svn命令：
+svn update >update.result
+
+4.策划在客户端执行命令@makeProps
+实际调用的是makeData.makeProps函数，执行生成py文件
+
+5.策划在客户端执行@commit命令
+提交服务器上面的生成的py文件到svn服务器上
+本质上是游戏服务器执行了下面的svn命令：
+svn commit -m "commit planner data on linux" >commit.result
+
+
+上面说的客户端就是我们自己写的模拟游戏客户端
+
+a.策划机器
+b.svn服务器
+c.游戏服务器

@@ -1,0 +1,13 @@
+package miniGame;
+//各种小游戏的msg
+
+
+//翻卡牌
+message startTurnCardMsg{
+	required int32 iChance=1;//可抽次数
+	required bytes sCost=2;//付费描述信息
+	required int32 iTimeout=3;//倒计时秒数.
+	//抽完奖后延迟关闭时间.
+}
+
+

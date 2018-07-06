@@ -1,0 +1,34 @@
+package act_guaji;	//挂机活动服务
+
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//挂机设置
+message configMsg{
+	optional int32 rolePfId=1; //人物法术，1.物理攻击 5.防御  其它.法术编号
+	optional int32 petPfId=2; //宠物法术，1.物理攻击 5.防御  其它.法术编号
+	optional int32 roleOfflinePfId=3; //离线降魔的人物法术，1.物理攻击 5.防御  其它.法术编号
+	optional int32 petOfflinePfId=4; //离线降魔的宠物法术，1.物理攻击 5.防御  其它.法术编号
+	optional bool isOfflineTask=5; //是否离线降魔
+	optional int32 offlineTaskRing=6; //剩余离线降魔次数
+}
+
+//上行(客户端主动发起)
+service terminal2main{//登录注册账号相关
+
+	rpc rpcActGuajiGetConfig(public.fake)returns(public.fake);//获取挂机设置
+	rpc rpcActGuajiSetConfig(act_guaji.configMsg)returns(public.fake);//设置挂机
+
+	//rpc rpcActGuajiTrans(common.int32_)returns(public.fake);//传送到挂机暗雷场景
+	//rpc rpcActGuajiSetAutoFight(common.bool_)returns(public.fake);//设置自动战斗
+	//rpc rpcActGuajiGetTask(public.fake)returns(public.fake);//领取除妖位道任务
+	//rpc rpcActGuajiMonsterCnt(public.fake)returns(common.int32_);//请求当前除妖数
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	rpc rpcActGuajiConfig(act_guaji.configMsg)returns(public.fake);//挂机设置
+	rpc rpcActGuajiConfigChange(act_guaji.configMsg)returns(public.fake);//改变挂机设置
+}

@@ -1,0 +1,148 @@
+package buddy;//伙伴相关
+option py_generic_services=true;
+
+import "universal/public.proto";
+import "common.proto";
+
+//伙伴信息
+message buddyMsg{
+	required int32 iBuddyNo=1;//伙伴编号
+	optional int32 quality=2; //阶级
+	optional int32 isRent=3;//是否出租
+	repeated int32 skillList=4;//技能列表
+	optional int32 fight=5;//战力
+	optional int32 iFriendId=6;//好友id
+	optional int32 iTime=7;//剩余时间
+	optional bytes sFriendName=8;//好友名字
+	optional int32 iMoney=9;//租借金额
+
+	optional int32 hpMax=10; //生命上限
+	optional int32 phyDam=11; //物理伤害
+	optional int32 magDam=12; //法术伤害
+	optional int32 phyDef=13; //物理防御
+	optional int32 magDef=14; //法术防御
+	optional int32 spe=15; //速度
+	optional int32 cure=16; //治疗强度
+	optional int32 sealHit=17; //封印
+	optional int32 reSealHit=18;//抗封
+
+}
+
+//简要信息
+message baseInfo{
+	required int32 iBuddyNo=1;//伙伴编号
+	optional int64 iFriendId=2; //好友Id
+}
+
+//阵容信息
+message battleMsg{
+	required int32 iBattleNo=1;//阵容编号
+	optional int64 iLineup=2;//阵法编号
+	repeated baseInfo buddyNoList=3; //伙伴
+}
+
+//专精信息
+message majorMsg{
+	required int32 buddyType=1;//助战类型
+	optional int32 score=2;//总分数
+}
+
+//阵容列表
+message battleList{
+	optional int32 iFightBattle=1; //出战阵容的编号
+	repeated battleMsg battleList=2;//阵容列表
+	repeated buddyMsg buddyList=3;//伙伴列表
+	repeated majorMsg majorList=4;//专精列表
+	repeated buddyMsg friendList=5;//已租借的好友伙伴
+	optional int32 iPrice=6;//累积租金
+}
+
+//位置信息
+message posMsg{
+	required int32 iBattleNo=1; //阵容编号
+	required baseInfo buddy=2;  //伙伴,上传编号和好友id
+	required int32 iPos=3; //位置
+}
+
+//交换信息
+message exchangeMsg{
+	required int32 iBattleNo=1; //阵容编号
+	required int32 iPos1=2; //位置1
+	required int32 iPos2=3; //位置2
+}
+
+//队伍伙伴信息
+message teamBuddyList{
+	required int32 iLevel=1;//伙伴等级
+	repeated baseInfo buddyList=2;//伙伴编号
+}
+
+//技能学习
+message skillLearn{
+	required int32 iBuddyNo=1;//伙伴编号
+	optional int64 iPropsId1=2;//物品Id
+	optional int64 iPropsId2=3;//物品Id
+}
+
+//好友伙伴列表
+message friendBuddyList{
+	repeated buddyMsg buddyList=1;//好友伙伴
+}
+
+//租借信息
+message rentMsg{
+	optional int32 iTime=1;//时间
+	optional bytes sContent=2;//内容
+}
+
+//租借信息列表
+message rentMsgList{
+	optional int32 iPage=1;//当前页数
+	optional int32 iMaxPage=2;//最大页数
+	repeated rentMsg rentList=3;//租借信息
+}
+
+
+//上行(客户端主动发起)
+service terminal2main{
+	//阵容相关的
+	rpc rpcReqUpBattle(buddy.posMsg)returns(public.fake);//伙伴上阵
+	rpc rpcReqDownBattle(common.int32Pair)returns(public.fake);//伙伴下阵 1:阵容编号 2：位置
+  	rpc rpcSetUseBattle(common.int32_)returns(common.bool_);//设置使用的阵容
+  	rpc rpcExchangePos(buddy.exchangeMsg)returns(common.bool_);//交换位置
+  	rpc rpcChangeLineup(buddy.battleMsg)returns(public.fake);//切换阵法
+
+  	//伙伴列表相关的
+  	rpc rpcUpgradeBuddy(buddy.buddyMsg)returns(public.fake);//获得/升阶伙伴 ，上传伙伴编号
+  	rpc rpcLearnSkill(buddy.skillLearn)returns(public.fake);//学习技能
+  	rpc rpcSetRent(buddy.buddyMsg)returns(public.fake);//设置是否出租 上传编号和 是否出租
+
+  	//好友伙伴相关的
+  	rpc rpcFriendBuddyReq(public.fake)returns(public.fake);//请求好友伙伴
+  	rpc rpcFriendBuddyRent(buddy.buddyMsg)returns(public.fake);//租借好友伙伴和伙伴编号
+  	rpc rpcGetRentMoney(public.fake)returns(public.fake);//一键领取租金
+  	rpc rpcRentInfoReq(buddy.rentMsgList)returns(public.fake);//租借信息请求，上传页数
+}
+
+//下行(服务端主动发起)
+service main2terminal{
+	//阵容相关的
+	rpc rpcBattleList(buddy.battleList)returns(public.fake);//阵容列表
+	rpc rpcUpBattle(buddy.posMsg)returns(public.fake);//伙伴上阵
+	rpc rpcDownBattle(common.int32Pair)returns(public.fake);//伙伴下阵 1:阵容编号 2：位置
+	rpc rpcBattleMod(buddy.battleMsg)returns(public.fake);//阵容修改
+
+	//伙伴列表相关的
+	rpc rpcAddBuddy(buddy.buddyMsg)returns(public.fake);//增加伙伴
+	rpc rpcModBuddy(buddy.buddyMsg)returns(public.fake);//修改伙伴信息
+
+	rpc rpcModMajor(buddy.majorMsg)returns(public.fake);//修改专精信息
+
+	//好友伙伴相关的
+	rpc rpcFriendBuddySend(buddy.friendBuddyList)returns(public.fake);//发送好友伙伴
+	rpc rpcFriendBuddyAdd(buddy.buddyMsg)returns(public.fake);//增加好友伙伴
+	rpc rpcFriendBuddyMod(buddy.buddyMsg)returns(public.fake);//修改好友伙伴
+	rpc rpcFriendBuddyDel(buddy.buddyMsg)returns(public.fake);//删除好友伙伴，上传好友id和伙伴编号
+	rpc rpcRentPriceMod(common.int32_)returns(public.fake);//租金修改
+	rpc rpcRentInfoSend(buddy.rentMsgList)returns(public.fake);//租借信息发送
+}

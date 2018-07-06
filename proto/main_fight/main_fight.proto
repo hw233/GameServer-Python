@@ -1,0 +1,17 @@
+option py_generic_services=true;//是否生成python服务
+import "universal/public.proto";
+import "universal/base.proto";
+
+
+//主服务 --> 战斗服务
+service main2fight{	
+	rpc rpcHelloFight_iAmMain(public.fake)returns(base.bool_);//
+	rpc rpcHotUpdate(base.bytes_)returns(public.fake); //热更新
+}
+
+//战斗服务--> 主服务
+service fight2main{
+	rpc rpcHelloMain_iAmFight(base.int32_)returns(base.bool_);//
+}
+
+

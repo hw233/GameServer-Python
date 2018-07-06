@@ -1,0 +1,101 @@
+package im;
+//instant message 即时通信
+import "universal/public.proto";
+
+
+//请求对方信息
+message roleReq{
+	required int64 iReceiverId=1;//id
+	required int64 iLv=2;//等级
+	required bytes sName=3;//名字
+	required int64 iSchool=4;//职业
+	required bool bFriend=5;//是否好友
+}
+
+//发送聊天消息
+message chatReq{
+	required int64 iReceiverId=1;//接收者id
+	required bytes sContent=2;//聊天内容
+}
+
+//发送聊天反馈
+message chatResp{
+	required bool bRet=1;//是否发送成功
+	optional bytes sContent=2;//发送成功的聊天内容(可能与送上来内容的不一样,违禁字被替换成****了)
+	//发送失败则sContent为失败原因
+}
+
+
+//聊天消息转发
+message chatMsgRelay{
+	required int64 iSenderId=1;//发送者id
+	repeated tag imMsg=2;
+	
+	message tag{		
+		required bytes sContent=1;//聊天内容
+		required uint32 iSendStamp=2;//发送时间戳
+	}
+}
+
+//系统消息
+message sysMsg{
+	required bytes sContent=1;//消息内容
+	required uint32 iSendStamp=2;//发送时间戳
+}
+
+//好友信息
+message roleList{
+	required int32 iType=1;//1好友，2黑名单，3周围玩家，4最近联系人(请求好友列表),1,加好友;2,删好友(rpcRoleChange好友名单变化), 100援护助战
+	repeated roleInfo roles=2;
+	
+	message roleInfo{
+		required uint64	iRoleId=1;//角色id
+		optional bool bOnline=2;//是否在线
+		optional bytes	sRoleName=3;//名称
+		optional uint32	iRoleLevel=4;//等级
+		optional int32 iRoleSchool=5;//职业
+		optional int32 iFightAbility=6;//战斗机
+		optional bool bPraise=7;//是否点赞
+		optional int32 iGetPraise=8;//是否收赞   1:收到赞  2:已收赞  3:未收赞
+		optional int32 iTacit=9;//默契值
+		optional int32 iTacitStar=10;//默契星数
+		optional int32 iNextTacit=11;//下级还差默契值
+		optional int32 iFightAdd=12;//战力加成  
+		optional int32 iPayValue=13;//助援者消耗  
+		optional int32 iIsFriend=14;//是否是好友关系
+		optional int32 iVip=15;//vip等级
+	}
+}
+
+//最近联系人
+message recentContact{
+	message tag{
+		required bytes sContent=1;//消息内容
+		required uint32 iSendStamp=2;//发送时间戳
+	}
+}
+
+//查看好友装备
+message equipInfo{
+	required uint64 iRoleId=1;//好友Id
+	required uint64 iEquipId=2;//装备Id
+}
+
+//战力对比
+message fightCmp{
+	required int32 iMyBaseFight=1;//自己基础战力
+	optional int32 iMyEnhanceFight=2;//自己强化战力
+	optional int32 iMyStarFight=3;//自己升星战力
+	optional int32 iMyGemFight=4;//自己宝石战力
+	optional int32 iMyCostumeFight=5;//自己时装战力
+	required int32 iTargetBaseFight=6;//对方基础战力
+	optional int32 iTargetEnhanceFight=7;//
+	optional int32 iTargetStarFight=8;//
+	optional int32 iTargetGemFight=9;//
+	optional int32 iTargetCostumeFight=10;//
+	required int32 iMaxBaseFight=11;//最大基础战力
+	required int32 iMaxEnhanceFithg=12;//
+	required int32 iMaxStarFight=13;//
+	required int32 iMaxGemFight=14;//
+	required int32 iMaxCostumeFight=15;
+}
